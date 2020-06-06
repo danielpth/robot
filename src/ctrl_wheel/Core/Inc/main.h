@@ -70,10 +70,6 @@ void Error_Handler(void);
 #define Motor2_Current_GPIO_Port GPIOA
 #define Battery_Vdd_Pin GPIO_PIN_5
 #define Battery_Vdd_GPIO_Port GPIOA
-#define Motor1_EncoderA_Pin GPIO_PIN_6
-#define Motor1_EncoderA_GPIO_Port GPIOA
-#define Motor1_EncoderB_Pin GPIO_PIN_7
-#define Motor1_EncoderB_GPIO_Port GPIOA
 #define Motor1_EN_Pin GPIO_PIN_1
 #define Motor1_EN_GPIO_Port GPIOB
 #define BOOT1_Pin GPIO_PIN_2
@@ -92,10 +88,6 @@ void Error_Handler(void);
 #define Motor1_PWM_GPIO_Port GPIOA
 #define Motor2_PWM_Pin GPIO_PIN_3
 #define Motor2_PWM_GPIO_Port GPIOB
-#define Motor2_EncoderA_Pin GPIO_PIN_6
-#define Motor2_EncoderA_GPIO_Port GPIOB
-#define Motor2_EncoderB_Pin GPIO_PIN_7
-#define Motor2_EncoderB_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
