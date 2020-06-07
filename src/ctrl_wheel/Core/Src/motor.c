@@ -6,7 +6,7 @@ volatile double motor1_integration, motor2_integration;
 volatile double motor1_ref, motor2_ref;
 volatile double motor1_error, motor2_error;
 volatile double cnt1, cnt2;
-volatile double P = 12, I = 14, D = 0;
+volatile double P = 0 /*12*/, I = 35 /*12 sem sobresinal*/, D = 0;
 
 void Motor1SetPWM(int pwm1) {
 	if (pwm1 > 0) {
@@ -46,9 +46,9 @@ void Motor2SetPWM(int pwm2) {
 	}
 }
 
-void MotorSetReference(double ref1, double ref2) {
-	motor1_ref = ref1;
-	motor2_ref = ref2;
+void MotorSetReference(double ref_left, double ref_right) {
+	motor1_ref = ref_right;
+	motor2_ref = ref_left;
 }
 
 #define TIME_INTERVAL 0.05

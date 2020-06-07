@@ -8,9 +8,7 @@ extern volatile double motor1_speed, motor2_speed, motor1_position,
 
 extern volatile double motor1_position, motor2_position;
 
-void Motor1SetPWM(int pwm1);
-
-void MotorSetReference(double ref1, double ref2);
+void MotorSetReference(double ref_left, double ref_right);
 void MotorSpeedControl(void);
 
 #endif

@@ -31,7 +31,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern char xmodem_trace[50];
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -123,7 +123,10 @@ int main(void) {
 			HAL_UART_Transmit(&huart1, (uint8_t*) "\n\rWaiting firmware...\n\r",
 					23, 1000);
 			xmodem_receive();
+			HAL_Delay(100);
+			HAL_UART_Transmit(&huart1, (uint8_t*) xmodem_trace, strlen (xmodem_trace), 1000)/
 			HAL_UART_Transmit(&huart1, (uint8_t*) "\n\rTimeout!\n\r", 12, 1000);
+			start_time = HAL_GetTick();
 			break;
 
 		case 'j':

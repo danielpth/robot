@@ -148,18 +148,23 @@ int main(void)
 			break;
 
 		case 'w':
-			MotorSetReference (1000, 1000);
-			//Motor1SetPWM(16000);
+			MotorSetReference (3000, 3000);
 			break;
 
 		case 'x':
-			MotorSetReference (-1000, -1000);
-			//Motor1SetPWM(-16000);
+			MotorSetReference (-1500, -1500);
+			break;
+
+		case 'a':
+			MotorSetReference (-1500, 1500);
+			break;
+
+		case 'd':
+			MotorSetReference (2000, -2000);
 			break;
 
 		case 's':
 			MotorSetReference (0, 0);
-			//Motor1SetPWM(0);
 			break;
 		}
 

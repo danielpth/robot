@@ -8,7 +8,7 @@
  */
 
 #include "xmodem.h"
-
+#include <string.h>
 #define UART_TIMEOUT 1000
 
 /* Global variables. */
@@ -22,6 +22,7 @@ static xmodem_status xmodem_handle_packet(uint8_t size);
 static xmodem_status xmodem_error_handler(uint8_t *error_number,
 		uint8_t max_error_number);
 
+char xmodem_trace[50] = {0};
 /**
  * @brief   This function is the base of the Xmodem protocol.
  *          When we receive a header from UART, it decides what action it shall take.
@@ -53,6 +54,7 @@ void xmodem_receive(void) {
 		/* Uart timeout or any other errors. */
 		else if ((HAL_OK != comm_status) && (true == x_first_packet_received)) {
 			status = xmodem_error_handler(&error_number, X_MAX_ERRORS);
+			strcat (xmodem_trace, "1 ");
 		} else {
 			/* Do nothing. */
 		}
@@ -73,10 +75,14 @@ void xmodem_receive(void) {
 			else if (X_ERROR_FLASH == packet_status) {
 				error_number = X_MAX_ERRORS;
 				status = xmodem_error_handler(&error_number, X_MAX_ERRORS);
+				strcat (xmodem_trace, "2 ");
+
 			}
 			/* Error while processing the packet, either send a NAK or do graceful abort. */
 			else {
 				status = xmodem_error_handler(&error_number, X_MAX_ERRORS);
+				strcat (xmodem_trace, "3 ");
+				sprintf (&xmodem_trace[strlen(xmodem_trace)+1], "(%d)", packet_status);
 			}
 			break;
 			/* End of Transmission. */
@@ -100,6 +106,7 @@ void xmodem_receive(void) {
 			/* Wrong header. */
 			if (HAL_OK == comm_status) {
 				status = xmodem_error_handler(&error_number, X_MAX_ERRORS);
+				strcat (xmodem_trace, "4 ");
 			}
 			break;
 		}
