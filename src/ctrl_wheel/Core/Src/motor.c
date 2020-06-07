@@ -55,8 +55,8 @@ void MotorSetReference(double ref1, double ref2) {
 #define TIME_INTERVAL 0.05
 void MotorSpeedControl(void) {
 	int pwm1, pwm2, deriv1 = 0, deriv2 = 0;
-	cnt1 = (int32_t)TIM3->CNT;
-	cnt2 = (int32_t)TIM4->CNT;
+	cnt1 = (int16_t)TIM3->CNT;
+	cnt2 = (int16_t)TIM4->CNT;
 	TIM3->CNT = 0;
 	TIM4->CNT = 0;
 	//cnt1 *= motor1_dir;
