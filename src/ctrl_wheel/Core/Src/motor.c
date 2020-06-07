@@ -6,8 +6,7 @@ volatile double motor1_integration, motor2_integration;
 volatile double motor1_ref, motor2_ref;
 volatile double motor1_error, motor2_error;
 volatile double cnt1, cnt2;
-volatile double P = 0.5, I = 0, D = 0;
-volatile double Kv = 50;
+volatile double P = 12, I = 14, D = 0;
 
 void Motor1SetPWM(int pwm1) {
 	if (pwm1 > 0) {
@@ -76,12 +75,12 @@ void MotorSpeedControl(void) {
 	// controle PID Motor1
 	motor1_error = motor1_ref - motor1_speed;
 	motor1_integration += motor1_error * TIME_INTERVAL;
-	pwm1 = ((motor1_integration * I) + (motor1_error * P) + (deriv1 * D)) * Kv;
+	pwm1 = ((motor1_integration * I) + (motor1_error * P) + (deriv1 * D));
 
 	// controle PID Motor2
 	motor2_error = motor2_ref - motor2_speed;
-	motor2_integration += motor2_error;
-	pwm2 = ((motor2_integration * I) + (motor2_error * P) + (deriv2 * D)) * Kv;
+	motor2_integration += motor2_error * TIME_INTERVAL;
+	pwm2 = ((motor2_integration * I) + (motor2_error * P) + (deriv2 * D));
 
 	// Set PWM
 	if ((motor1_ref == 0) && (motor1_speed == 0)) {
