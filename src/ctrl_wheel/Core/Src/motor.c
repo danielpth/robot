@@ -54,7 +54,8 @@ void MotorSetReference(double ref1, double ref2) {
 
 #define TIME_INTERVAL 0.05
 void MotorSpeedControl(void) {
-	int pwm1, pwm2, deriv1 = 0, deriv2 = 0;
+	int pwm1, pwm2;
+	double deriv1 = 0, deriv2 = 0;
 	cnt1 = (int16_t)TIM3->CNT;
 	cnt2 = (int16_t)TIM4->CNT;
 	TIM3->CNT = 0;
@@ -77,15 +78,7 @@ void MotorSpeedControl(void) {
 	motor1_integration += motor1_error * TIME_INTERVAL;
 	pwm1 = ((motor1_integration * I) + (motor1_error * P) + (deriv1 * D)) * Kv;
 
-	motor1_error = motor1_ref - motor1_speed;
-	motor1_integration += motor1_error * TIME_INTERVAL;
-	pwm1 = ((motor1_integration * I) + (motor1_error * P) + (deriv1 * D)) * Kv;
-
 	// controle PID Motor2
-	motor2_error = motor2_ref - motor2_speed;
-	motor2_integration += motor2_error;
-	pwm2 = ((motor2_integration * I) + (motor2_error * P) + (deriv2 * D)) * Kv;
-
 	motor2_error = motor2_ref - motor2_speed;
 	motor2_integration += motor2_error;
 	pwm2 = ((motor2_integration * I) + (motor2_error * P) + (deriv2 * D)) * Kv;
