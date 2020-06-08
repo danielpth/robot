@@ -75,7 +75,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	uint32_t i;
-	uint8_t buffer[10];
+	uint8_t buffer[100];
 
   /* USER CODE END 1 */
 
@@ -113,6 +113,7 @@ int main(void)
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
 	HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_1);
 	HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_2);
+	HAL_ADC_Start_DMA(&hadc1, adc_buf, ADC_DMA_LENGTH);
 
   /* USER CODE END 2 */
 
@@ -148,32 +149,33 @@ int main(void)
 			break;
 
 		case 'w':
-			MotorSetReference (3000, 3000);
+			MotorSetReference(3000, 3000);
 			break;
 
 		case 'x':
-			MotorSetReference (-1500, -1500);
+			MotorSetReference(-1500, -1500);
 			break;
 
 		case 'a':
-			MotorSetReference (-1500, 1500);
+			MotorSetReference(-1500, 1500);
 			break;
 
 		case 'd':
-			MotorSetReference (2000, -2000);
+			MotorSetReference(2000, -2000);
 			break;
 
 		case 's':
-			MotorSetReference (0, 0);
+			MotorSetReference(0, 0);
 			break;
 		}
 
-		//sprintf (buffer, "M: %d %d\n\r", (int)HAL_GPIO_ReadPin(Motor2_EncoderA_GPIO_Port, Motor2_EncoderA_Pin), (int)HAL_GPIO_ReadPin(Motor2_EncoderB_GPIO_Port, Motor2_EncoderB_Pin));
-		//sprintf (buffer, "M: %d %d\n\r", (int)motor1_position, (int)motor2_position);
-		//sprintf (buffer, "M: %d %d\n\r", TIM3->CNT, TIM4->CNT);
-		sprintf (buffer, "M: %d %d\n\r", (int)motor1_speed, (int)motor2_speed);
-		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 1000);
-
+		//sprintf((char*) buffer, "M: %d %d\n\r", (int) motor1_speed, (int) motor2_speed);
+		//sprintf((char*) buffer, "M: %d %d %d %d %d %d %d %d\n\r", (int) adc_buf[0], (int) adc_buf[1],
+				//(int) adc_buf[2], (int) adc_buf[3], (int) adc_buf[4], (int) adc_buf[5], (int) adc_buf[6], (int) adc_buf[7]);
+		sprintf((char*) buffer, "M: %d %d %d %d\n\r", (int) adc_buf[0], (int) adc_buf[1],
+				(int) adc_buf[2], (int) adc_buf[3]);
+		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen((char*) buffer),
+				1000);
 
 	}
   /* USER CODE END 3 */

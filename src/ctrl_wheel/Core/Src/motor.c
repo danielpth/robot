@@ -7,6 +7,7 @@ volatile double motor1_ref, motor2_ref;
 volatile double motor1_error, motor2_error;
 volatile double cnt1, cnt2;
 volatile double P = 0 /*12*/, I = 35 /*12 sem sobresinal*/, D = 0;
+uint16_t adc_buf[ADC_DMA_LENGTH];
 
 void Motor1SetPWM(int pwm1) {
 	if (pwm1 > 0) {
