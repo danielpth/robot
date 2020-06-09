@@ -3,10 +3,11 @@
 
 #include "main.h"
 
-#define MOTOR1_CURRENT ADC1->JDR1
-#define MOTOR2_CURRENT ADC1->JDR2
-#define BATERY_VOLTAGE ADC1->JDR3
-#define TEMPERATURE    ADC1->JDR4
+#define MOTOR1_CURRENT  ADC1->JDR1
+#define MOTOR2_CURRENT  ADC1->JDR2
+#define BATTERY         ADC1->JDR3
+#define TEMPERATURE     ADC1->JDR4
+#define BAT_mV          (BATTERY*19800)/4096
 
 #define MOTOR_MAX_SPEED 180.0
 
