@@ -3,18 +3,19 @@
 
 #include "main.h"
 
-#define ADC_DMA_LENGTH 8
+#define MOTOR1_CURRENT ADC1->JDR1
+#define MOTOR2_CURRENT ADC1->JDR2
+#define BATERY_VOLTAGE ADC1->JDR3
+#define TEMPERATURE    ADC1->JDR4
 
-extern volatile double motor1_speed, motor2_speed, motor1_position,
-		motor2_position, motor1_integration, motor2_integration;
+#define MOTOR_MAX_SPEED 180.0
+
+extern volatile double motor1_speed, motor2_speed;
 extern volatile double motor1_position, motor2_position;
-extern uint16_t adc_buf[ADC_DMA_LENGTH];
 
-void MotorSetReference(double ref_left, double ref_right);
+void Motor1SetReference(double ref);
+void Motor2SetReference(double ref);
 void MotorControlSpeed(void);
 void MotorControlVoltage(void);
-
-void Motor1SetVoltage(double voltage);
-void Motor2SetVoltage(double voltage);
 
 #endif

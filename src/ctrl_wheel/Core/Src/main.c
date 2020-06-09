@@ -22,7 +22,6 @@
 #include "main.h"
 #include "adc.h"
 #include "crc.h"
-#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -96,7 +95,6 @@ int main(void) {
 
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
-	MX_DMA_Init();
 	MX_TIM2_Init();
 	MX_ADC1_Init();
 	MX_USART1_UART_Init();
@@ -112,7 +110,7 @@ int main(void) {
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
 	HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_1);
 	HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_2);
-	HAL_ADC_Start_DMA(&hadc1, adc_buf, ADC_DMA_LENGTH);
+	HAL_ADC_Start(&hadc1);
 
 	/* USER CODE END 2 */
 
@@ -149,35 +147,40 @@ int main(void) {
 			break;
 
 		case 'w':
-			MotorSetReference(80, 80);
+			Motor1SetReference(80);
+			Motor2SetReference(80);
 			break;
 
 		case 'x':
-			MotorSetReference(-50, -50);
+			Motor1SetReference(-50);
+			Motor2SetReference(-50);
 			break;
 
 		case 'a':
-			MotorSetReference(-50, 50);
+			Motor1SetReference(-50);
+			Motor2SetReference(50);
 			break;
 
 		case 'd':
-			MotorSetReference(50, -50);
+			Motor1SetReference(50);
+			Motor2SetReference(-50);
 			break;
 
 		case 's':
-			MotorSetReference(0, 0);
+			Motor1SetReference(0);
+			Motor2SetReference(0);
 			break;
 		case 'q':
-			Motor1SetVoltage(12);
-			Motor2SetVoltage(12);
+			//Motor1SetVoltage(12);
+			//Motor2SetVoltage(12);
 			break;
 		}
 
-		sprintf((char*) buffer, "M: %d %d\n\r", (int) motor1_speed, (int) motor2_speed);
-		//sprintf((char*) buffer, "M: %d %d %d %d %d %d %d %d\n\r", (int) adc_buf[0], (int) adc_buf[1],
-		//(int) adc_buf[2], (int) adc_buf[3], (int) adc_buf[4], (int) adc_buf[5], (int) adc_buf[6], (int) adc_buf[7]);
+		//sprintf((char*) buffer, "M: %d %d\n\r", (int) motor1_speed, (int) motor2_speed);
+		sprintf((char*) buffer, "M: %d %d %d %d\n\r", (int) MOTOR1_CURRENT,
+				(int) MOTOR2_CURRENT, (int) BATERY_VOLTAGE, (int) TEMPERATURE);
 		//sprintf((char*) buffer, "M: %d %d %d %d\n\r", (int) adc_buf[0],
-				//(int) adc_buf[1], (int) adc_buf[2], (int) adc_buf[3]);
+		//(int) adc_buf[1], (int) adc_buf[2], (int) adc_buf[3]);
 		//sprintf((char*) buffer, "M: %d\n\r", (int) TIM3->CNT);
 		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen((char*) buffer),
 				1000);
