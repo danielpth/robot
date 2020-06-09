@@ -7,12 +7,14 @@
 
 extern volatile double motor1_speed, motor2_speed, motor1_position,
 		motor2_position, motor1_integration, motor2_integration;
-
 extern volatile double motor1_position, motor2_position;
+extern uint16_t adc_buf[ADC_DMA_LENGTH];
 
 void MotorSetReference(double ref_left, double ref_right);
-void MotorSpeedControl(void);
+void MotorControlSpeed(void);
+void MotorControlVoltage(void);
 
-extern uint16_t adc_buf[ADC_DMA_LENGTH];
+void Motor1SetVoltage(double voltage);
+void Motor2SetVoltage(double voltage);
 
 #endif

@@ -1,12 +1,16 @@
 #include "motor.h"
 
+#define BATERY_VOLTAGE adc_buf[2]
+
 volatile double motor1_speed, motor2_speed, motor1_speed_old, motor2_speed_old;
 volatile double motor1_position, motor2_position;
 volatile double motor1_integration, motor2_integration;
 volatile double motor1_ref, motor2_ref;
 volatile double motor1_error, motor2_error;
+volatile double motor1_voltage, motor2_voltage;
 volatile double cnt1, cnt2;
-volatile double P = 0 /*12*/, I = 35 /*12 sem sobresinal*/, D = 0;
+volatile double P = 1 /*12*/, I = 0/*35*/ /*12 sem sobresinal*/, D = 0;
+double Kv = 12.0 / 180.0; // 12V sao 180 RPM na roda
 uint16_t adc_buf[ADC_DMA_LENGTH];
 
 void Motor1SetPWM(int pwm1) {
@@ -47,23 +51,42 @@ void Motor2SetPWM(int pwm2) {
 	}
 }
 
+void Motor1SetVoltage(double voltage) {
+	if (voltage > 12)
+		voltage = 12;
+	if (voltage < -12)
+		voltage = -12;
+	motor1_voltage = voltage;
+}
+
+void Motor2SetVoltage(double voltage) {
+	if (voltage > 12)
+		voltage = 12;
+	if (voltage < -12)
+		voltage = -12;
+	motor2_voltage = voltage;
+}
+
 void MotorSetReference(double ref_left, double ref_right) {
 	motor1_ref = ref_right;
 	motor2_ref = ref_left;
 }
 
 #define TIME_INTERVAL 0.05
-void MotorSpeedControl(void) {
-	int pwm1, pwm2;
+#define PPR 1650.0
+//#define PPR 1.0
+void MotorControlSpeed(void) {
+	// 22 pulsos por volta
+	// engranagem 1:75
+	// 1650 pulsos por volta na roda
+	double voltage1, voltage2;
 	double deriv1 = 0, deriv2 = 0;
-	cnt1 = (int16_t)TIM3->CNT;
-	cnt2 = (int16_t)TIM4->CNT;
+	cnt1 = (int16_t) TIM3->CNT;
+	cnt2 = (int16_t) TIM4->CNT;
 	TIM3->CNT = 0;
 	TIM4->CNT = 0;
-	//cnt1 *= motor1_dir;
-	//cnt2 *= motor2_dir;
-	motor1_speed = cnt1 / TIME_INTERVAL;
-	motor2_speed = cnt2 / TIME_INTERVAL;
+	motor1_speed = cnt1 / TIME_INTERVAL / PPR * 60.0; // RPM roda
+	motor2_speed = cnt2 / TIME_INTERVAL / PPR * 60.0; // RPM roda
 	motor1_position += cnt1;
 	motor2_position += cnt2;
 
@@ -76,29 +99,40 @@ void MotorSpeedControl(void) {
 	// controle PID Motor1
 	motor1_error = motor1_ref - motor1_speed;
 	motor1_integration += motor1_error * TIME_INTERVAL;
-	pwm1 = ((motor1_integration * I) + (motor1_error * P) + (deriv1 * D));
+	voltage1 = ((motor1_integration * I) + (motor1_error * P) + (deriv1 * D)) * Kv;
 
 	// controle PID Motor2
 	motor2_error = motor2_ref - motor2_speed;
 	motor2_integration += motor2_error * TIME_INTERVAL;
-	pwm2 = ((motor2_integration * I) + (motor2_error * P) + (deriv2 * D));
+	voltage2 = ((motor2_integration * I) + (motor2_error * P) + (deriv2 * D)) * Kv;
 
-	// Set PWM
+	// Set Voltage
 	if ((motor1_ref == 0) && (motor1_speed == 0)) {
 		motor1_position = 0;
 		motor1_integration = 0;
-		Motor1SetPWM(0);
+		Motor1SetVoltage(0);
 	} else {
-		Motor1SetPWM(pwm1);
+		Motor1SetVoltage(voltage1);
 	}
 
 	if ((motor2_ref == 0) && (motor2_speed == 0)) {
 		motor2_position = 0;
 		motor2_integration = 0;
-		Motor2SetPWM(0);
+		Motor2SetVoltage(0);
 	} else {
-		Motor2SetPWM(pwm2);
+		Motor2SetVoltage(voltage2);
 	}
 
+}
+
+void MotorControlVoltage(void) {
+	// Check batery voltage and apply to motors
+	// 65535*4096/19,8 = 13557139,39
+	double pwm, correction;
+	correction = 13557139.39 / ((double)BATERY_VOLTAGE);
+	pwm = motor1_voltage * correction;
+	Motor1SetPWM((int) pwm);
+	pwm = motor2_voltage * correction;
+	Motor2SetPWM((int) pwm);
 }
 
