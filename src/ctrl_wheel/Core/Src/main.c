@@ -175,6 +175,8 @@ int main(void)
       //Motor2SetVoltage(12);
       break;
 
+    case 0x01:
+
     }
 
     sprintf(buffer, "M: %05d %05d %03d %03d %05u\n\r", (int) motor1_position, (int) motor2_position, (int) motor1_speed,
