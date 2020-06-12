@@ -56,5 +56,4 @@ dkms.conf
 *.hex
 *.srec
 *.list
-makefile
 *.symbolsrec
