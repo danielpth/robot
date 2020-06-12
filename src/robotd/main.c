@@ -37,9 +37,11 @@ int open_serial ()
 		return -1;
 	}
 
-	cfsetospeed (&tty, 115200);
-	cfsetispeed (&tty, 115200);
+	cfsetospeed (&tty, B115200);
+	cfsetispeed (&tty, B115200);
 
+	cfmakeraw(&tty);
+/*
 	tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
 	// disable IGNBRK for mismatched speed tests; otherwise receive break
 	// as \000 chars
@@ -58,7 +60,7 @@ int open_serial ()
 	//tty.c_cflag |= parity;
 	tty.c_cflag &= ~CSTOPB; // set 1 stop bit
 	tty.c_cflag &= ~CRTSCTS;
-
+*/
 	if (tcsetattr (fd, TCSANOW, &tty) != 0)
 	{
 		printf ("error %d from tcsetattr\n", errno);
@@ -83,7 +85,44 @@ uint8_t CommandReceive(void *payload, uint8_t size_of_payload) {
   HAL_StatusTypeDef status;
   uint8_t result = HAL_ERROR;
 
+
+fd_set rfds;
+struct timeval tv;
+           int retval;
+
+           /* Watch stdin (fd 0) to see when it has input. */
+
+           FD_ZERO(&rfds);
+           FD_SET(fd, &rfds);
+
+           /* Wait up to five seconds. */
+
+           tv.tv_sec = 1;
+           tv.tv_usec = 0;
+#if 0
+           retval = select(fd+1, &rfds, NULL, NULL, &tv);
+           /* Don't rely on the value of tv now! */
+
+           if (retval == -1)
+               perror("select()");
+           else if (retval)
+               printf("Data is available now.\n");
+               /* FD_ISSET(0, &rfds) will be true. */
+           else
+               printf("No data within five seconds.\n");
+#endif
+
+
+
+
   do {
+	retval = select(fd+1, &rfds, NULL, NULL, &tv);
+           if (retval == -1)
+		   {
+               printf("error on serial port\n");
+			   return -1;
+		   } else if (retval == 0) return HAL_TIMEOUT;
+		   
     status = read(fd, &data, 1);
 
     if (status > 0) {
@@ -91,6 +130,7 @@ uint8_t CommandReceive(void *payload, uint8_t size_of_payload) {
       case STATE_START_FRAME:
         if (data == COMMAND_SOF)
           state = STATE_GET_LENGHT;
+		  //printf ("Recebeu SOF\n");
         break;
 
       case STATE_GET_LENGHT:
@@ -100,14 +140,17 @@ uint8_t CommandReceive(void *payload, uint8_t size_of_payload) {
           status = -1;
         } else {
           state = STATE_GET_PAYLOAD;
+		  //printf ("Recebeu length %d\n", length);
         }
         break;
 
       case STATE_GET_PAYLOAD:
         buffer[index] = data;
         index++;
-        if (index == length)
+        if (index == length) {
           state = STATE_DONE;
+		  //printf ("Recebeu payload\n");
+		}
         break;
       }
     } else {
@@ -150,7 +193,9 @@ void RobotSetSpeed(double speed1, double speed2)
 
 int main()
 {
-	int c;
+	int c, s;
+	//char buf[50];
+	struct s_command_status status;
 	
 	fd = open_serial ();
 	
@@ -162,6 +207,15 @@ int main()
 	}
 	
 	do {
+		c = CommandReceive(&status, sizeof(status));
+		if (c == 0) {
+			printf ("Battery: %02.2fV Speed1: %.2f Speed2: %.2f \n", status.bat/4096.0*19.8, status.speed1, status.speed2);
+			//printf ("B\n");
+		}
+	} while (1);
+	
+	
+	do {
 	c = getchar();
 	switch (c) {
 		case 'q':
@@ -171,6 +225,7 @@ int main()
 		break;
 
 		case 'w':
+		printf ("RobotSetSpeed\n");
 		RobotSetSpeed(100, 100);
 		break;
 
@@ -190,8 +245,18 @@ int main()
 		RobotSetSpeed(-50, -50);
 		break;
 	}
-	//CommandReceive(fd, void *payload, uint8_t size_of_payload)
+
+		s = CommandReceive(&status, sizeof(status));
+		if (c == s) {
+			printf ("Battery: %02.2fV Speed1: %.2f Speed2: %.2f \n", status.bat/4096.0*19.8, status.speed1, status.speed2);
+		}
+
 	} while (c != 'q');
+	
+	
+	
+	
+	
 	
 	close (fd);
 
