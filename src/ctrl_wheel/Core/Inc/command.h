@@ -34,6 +34,7 @@ struct __attribute__((__packed__)) s_command_status {
   float speed1;
   float speed2;
   uint16_t bat;
+  uint8_t last;
   uint8_t result;
 };
 

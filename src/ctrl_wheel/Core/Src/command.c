@@ -20,11 +20,13 @@ static uint8_t CommandReceive(uint8_t *buffer, uint8_t size_of_payload) {
   uint8_t length, index = 0;
   HAL_StatusTypeDef status;
   uint8_t result = HAL_ERROR;
+  uint8_t crc = 0x55;
 
   do {
-    status = HAL_UART_Receive(&huart1, &data, 1, 1000);
+    status = HAL_UART_Receive(&huart1, &data, 1, 15);
 
     if (status == HAL_OK) {
+      crc ^= data;
       switch (state) {
       case STATE_START_FRAME:
         if (data == COMMAND_SOF) {
@@ -37,6 +39,7 @@ static uint8_t CommandReceive(uint8_t *buffer, uint8_t size_of_payload) {
         if (length > size_of_payload) {
           state = STATE_START_FRAME;
           status = HAL_ERROR;
+          result = 24;
         } else {
           result = state = STATE_GET_PAYLOAD;
         }
@@ -46,13 +49,27 @@ static uint8_t CommandReceive(uint8_t *buffer, uint8_t size_of_payload) {
         buffer[index] = data;
         index++;
         if (index == length)
-          result = state = STATE_DONE;
+          result = state = STATE_GET_CRC;
         else
           result = 20;
         break;
+
+      case STATE_GET_CRC:
+        if (crc == 0) {
+          state = STATE_DONE;
+        } else {
+          result = 25;
+          status = HAL_ERROR;
+        }
+        break;
+
       }
-    } else {
+    } else if (status == HAL_TIMEOUT) {
       result = 21;
+    } else if (status == HAL_BUSY) {
+      result = 22;
+    } else if (status == HAL_ERROR) {
+      result = 23;
     }
   } while ((status == HAL_OK) && (state != STATE_DONE));
 
@@ -65,11 +82,18 @@ static uint8_t CommandReceive(uint8_t *buffer, uint8_t size_of_payload) {
 }
 
 static void CommandTransmit(void *payload, uint8_t lenght) {
-  uint8_t data = COMMAND_SOF;
+  uint8_t data = COMMAND_SOF, i;
   uint8_t *buffer = payload;
+  uint8_t crc = 0x55;
+  crc ^= data;
+  crc ^= lenght;
+  for (i = 0; i < lenght; i++) {
+    crc ^= buffer[i];
+  }
   HAL_UART_Transmit(&huart1, &data, 1, 10);
   HAL_UART_Transmit(&huart1, &lenght, 1, 10);
   HAL_UART_Transmit(&huart1, buffer, lenght, lenght + 1);
+  HAL_UART_Transmit(&huart1, &crc, 1, 10);
 }
 
 static void CommandJumpBootloader(void) {
@@ -85,7 +109,7 @@ static void CommandJumpBootloader(void) {
   flash_jump_to_app();
 }
 
-static void CommandSendStatus(uint8_t r) {
+static void CommandSendStatus(uint8_t last, uint8_t r) {
 
   // Get status atomic as possible to send to host
   command_status.cmd = 'S';
@@ -95,6 +119,7 @@ static void CommandSendStatus(uint8_t r) {
   command_status.position2 = motor2_position;
   command_status.speed1 = motor1_speed;
   command_status.speed2 = motor2_speed;
+  command_status.last = last;
   command_status.result = r;
   CommandTransmit(&command_status, sizeof(command_status));
 }
@@ -110,16 +135,18 @@ static void CommandSetVoltage(uint8_t *buff) {
 static void CommandSetSpeed(uint8_t *buff) {
   float *speed1, *speed2;
   speed1 = (float*) &buff[0];
-  speed2 = (float*) &buff[8];
+  speed2 = (float*) &buff[sizeof(float)];
   Motor1SetReference(*speed1);
   Motor2SetReference(*speed2);
 }
 
+uint8_t buf[100];
+
 void CommandControl(void) {
   uint8_t status = 0, result = 0;
-  uint8_t buf[100];
 
   // Get command
+  buf[0] = 0;
   status = CommandReceive(buf, sizeof(buf));
   result = status;
   if (status == HAL_OK) {
@@ -171,8 +198,9 @@ void CommandControl(void) {
       break;
 
     }
+    CommandSendStatus(buf[0], result);
   } else if (status == HAL_TIMEOUT) {
     //result = 0;
   }
-  CommandSendStatus(result);
+  //CommandSendStatus(buf[0], result);
 }

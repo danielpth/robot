@@ -124,9 +124,7 @@ int main(void) {
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
     }
 
-    if ((i % 50) == 0) {
-      CommandControl();
-    }
+    CommandControl();
   }
   /* USER CODE END 3 */
 }
