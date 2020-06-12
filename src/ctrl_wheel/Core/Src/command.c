@@ -14,22 +14,22 @@
 
 struct s_command_status command_status;
 
-static uint8_t CommandReceive(void *payload, uint8_t size_of_payload) {
+static uint8_t CommandReceive(uint8_t *buffer, uint8_t size_of_payload) {
   uint8_t data;
   uint8_t state = STATE_START_FRAME;
   uint8_t length, index = 0;
-  uint8_t *buffer = payload;
   HAL_StatusTypeDef status;
   uint8_t result = HAL_ERROR;
 
   do {
-    status = HAL_UART_Receive(&huart1, &data, 1, 1);
+    status = HAL_UART_Receive(&huart1, &data, 1, 1000);
 
     if (status == HAL_OK) {
       switch (state) {
       case STATE_START_FRAME:
-        if (data == COMMAND_SOF)
-          state = STATE_GET_LENGHT;
+        if (data == COMMAND_SOF) {
+          result = state = STATE_GET_LENGHT;
+        }
         break;
 
       case STATE_GET_LENGHT:
@@ -38,7 +38,7 @@ static uint8_t CommandReceive(void *payload, uint8_t size_of_payload) {
           state = STATE_START_FRAME;
           status = HAL_ERROR;
         } else {
-          state = STATE_GET_PAYLOAD;
+          result = state = STATE_GET_PAYLOAD;
         }
         break;
 
@@ -46,11 +46,13 @@ static uint8_t CommandReceive(void *payload, uint8_t size_of_payload) {
         buffer[index] = data;
         index++;
         if (index == length)
-          state = STATE_DONE;
+          result = state = STATE_DONE;
+        else
+          result = 20;
         break;
       }
     } else {
-      result = status;
+      result = 21;
     }
   } while ((status == HAL_OK) && (state != STATE_DONE));
 
@@ -98,30 +100,30 @@ static void CommandSendStatus(uint8_t r) {
 }
 
 static void CommandSetVoltage(uint8_t *buff) {
-  double *voltage1, *voltage2;
-  voltage1 = (double*) &buff[0];
-  voltage2 = (double*) &buff[sizeof(double)];
+  float *voltage1, *voltage2;
+  voltage1 = (float*) &buff[0];
+  voltage2 = (float*) &buff[sizeof(float)];
   Motor1SetVoltage(*voltage1);
   Motor2SetVoltage(*voltage2);
 }
 
 static void CommandSetSpeed(uint8_t *buff) {
-  double *speed1, *speed2;
-  speed1 = (double*) &buff[0];
-  speed2 = (double*) &buff[sizeof(double)];
+  float *speed1, *speed2;
+  speed1 = (float*) &buff[0];
+  speed2 = (float*) &buff[8];
   Motor1SetReference(*speed1);
   Motor2SetReference(*speed2);
 }
 
 void CommandControl(void) {
   uint8_t status = 0, result = 0;
-  uint8_t buf[14];
+  uint8_t buf[100];
 
   // Get command
   status = CommandReceive(buf, sizeof(buf));
-
+  result = status;
   if (status == HAL_OK) {
-    result = 1;
+    result = 30;
     switch (buf[0]) {
 
     case COMMAND_JUMP_BOOTLOADER:
@@ -160,13 +162,17 @@ void CommandControl(void) {
       MotorClearPosition();
       break;
 
+    case COMMAND_SET_RESULT:
+      result = buf[1];
+      break;
+
     default:
-      result = 2;
+      result = 0xFF;
       break;
 
     }
   } else if (status == HAL_TIMEOUT) {
-    result = 0;
+    //result = 0;
   }
   CommandSendStatus(result);
 }

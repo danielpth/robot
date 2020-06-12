@@ -2,16 +2,16 @@
 
 #include <stdbool.h>
 
-volatile double motor1_speed, motor2_speed; // RPM wheel
-volatile double motor1_speed_old, motor2_speed_old;
-volatile double motor1_position, motor2_position; // mm
-volatile double motor1_integration, motor2_integration;
-volatile double motor1_ref, motor2_ref;
-volatile double motor1_error, motor2_error;
-volatile double motor1_voltage, motor2_voltage;
-volatile double cnt1, cnt2;
-volatile double P = 0 /*12*/, I = 3.5/*35*//*12 sem sobresinal*/, D = 0;
-double Kv = 12.0 / 180.0; // 12V sao 180 RPM na roda
+volatile float motor1_speed, motor2_speed; // RPM wheel
+volatile float motor1_speed_old, motor2_speed_old;
+volatile float motor1_position, motor2_position; // mm
+volatile float motor1_integration, motor2_integration;
+volatile float motor1_ref, motor2_ref;
+volatile float motor1_error, motor2_error;
+volatile float motor1_voltage, motor2_voltage;
+volatile float cnt1, cnt2;
+volatile float P = 0 /*12*/, I = 3.5/*35*//*12 sem sobresinal*/, D = 0;
+float Kv = 12.0 / 180.0; // 12V sao 180 RPM na roda
 bool motor_control_speed = false, motor_control_position = false;
 
 void Motor1SetPWM(int pwm1) {
@@ -52,7 +52,7 @@ void Motor2SetPWM(int pwm2) {
   }
 }
 
-void Motor1SetVoltage(double voltage) {
+void Motor1SetVoltage(float voltage) {
   if (voltage > MOTOR_MAX_VOLTAGE)
     voltage = MOTOR_MAX_VOLTAGE;
   if (voltage < -MOTOR_MAX_VOLTAGE)
@@ -60,7 +60,7 @@ void Motor1SetVoltage(double voltage) {
   motor1_voltage = voltage;
 }
 
-void Motor2SetVoltage(double voltage) {
+void Motor2SetVoltage(float voltage) {
   if (voltage > MOTOR_MAX_VOLTAGE)
     voltage = MOTOR_MAX_VOLTAGE;
   if (voltage < -MOTOR_MAX_VOLTAGE)
@@ -68,7 +68,7 @@ void Motor2SetVoltage(double voltage) {
   motor2_voltage = voltage;
 }
 
-void Motor1SetReference(double ref) {
+void Motor1SetReference(float ref) {
   if (ref > MOTOR_MAX_SPEED)
     ref = MOTOR_MAX_SPEED;
   if (ref < -MOTOR_MAX_SPEED)
@@ -76,7 +76,7 @@ void Motor1SetReference(double ref) {
   motor1_ref = ref;
 }
 
-void Motor2SetReference(double ref) {
+void Motor2SetReference(float ref) {
   if (ref > MOTOR_MAX_SPEED)
     ref = MOTOR_MAX_SPEED;
   if (ref < -MOTOR_MAX_SPEED)
@@ -97,8 +97,8 @@ void MotorCalculate(void) {
 
 void MotorControlSpeed(void) {
   if (motor_control_speed) {
-    double voltage1, voltage2;
-    double deriv1 = 0, deriv2 = 0;
+    float voltage1, voltage2;
+    float deriv1 = 0, deriv2 = 0;
 
     deriv1 = (motor1_speed - motor1_speed_old) / (MOTOR_TIME_INTERVAL / 1000.0);
     deriv2 = (motor2_speed - motor2_speed_old) / (MOTOR_TIME_INTERVAL / 1000.0);
@@ -138,9 +138,9 @@ void MotorControlSpeed(void) {
 void MotorControlVoltage(void) {
   // Check batery voltage and apply to motors
   // 65535*4096/19,8 = 13557139,39
-  double pwm, correction;
+  float pwm, correction;
   if (BATTERY) {
-    correction = 13557139.39 / ((double) BATTERY);
+    correction = 13557139.39 / ((float) BATTERY);
   } else {
     correction = 65535.0 / 16.8; // Tensao maxima da bateria eh 16.8V
   }

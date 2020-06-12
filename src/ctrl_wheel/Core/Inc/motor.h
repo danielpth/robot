@@ -22,19 +22,19 @@
 #define WHEEL_RADIUS 20.0 // mm
 #define WHEEL_PULSES (MOTOR_PULSES * MOTOR_RATIO) // 1650.0
 
-extern volatile double motor1_speed, motor2_speed;
-extern volatile double motor1_position, motor2_position;
+extern volatile float motor1_speed, motor2_speed;
+extern volatile float motor1_position, motor2_position;
 
-void Motor1SetReference(double ref);
-void Motor2SetReference(double ref);
+void Motor1SetReference(float ref);
+void Motor2SetReference(float ref);
 void MotorCalculate (void);
 void MotorControlSpeed(void);
 void MotorControlVoltage(void);
 void MotorTurnOnControlSpeed(void);
 void MotorTurnOffControlSpeed(void);
 
-void Motor1SetVoltage(double voltage);
-void Motor2SetVoltage(double voltage);
+void Motor1SetVoltage(float voltage);
+void Motor2SetVoltage(float voltage);
 void MotorClearPosition(void);
 
 #endif
