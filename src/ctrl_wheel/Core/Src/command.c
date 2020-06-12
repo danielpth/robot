@@ -99,16 +99,16 @@ static void CommandSendStatus(uint8_t r) {
 
 static void CommandSetVoltage(uint8_t *buff) {
   double *voltage1, *voltage2;
-  voltage1 = (double *)&buff[0];
-  voltage2 = (double *)&buff[sizeof(double)];
+  voltage1 = (double*) &buff[0];
+  voltage2 = (double*) &buff[sizeof(double)];
   Motor1SetVoltage(*voltage1);
   Motor2SetVoltage(*voltage2);
 }
 
 static void CommandSetSpeed(uint8_t *buff) {
   double *speed1, *speed2;
-  speed1 = (double *)&buff[0];
-  speed2 = (double *)&buff[sizeof(double)];
+  speed1 = (double*) &buff[0];
+  speed2 = (double*) &buff[sizeof(double)];
   Motor1SetReference(*speed1);
   Motor2SetReference(*speed2);
 }

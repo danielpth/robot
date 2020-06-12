@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 
-
 volatile double motor1_speed, motor2_speed; // RPM wheel
 volatile double motor1_speed_old, motor2_speed_old;
 volatile double motor1_position, motor2_position; // mm
@@ -151,18 +150,15 @@ void MotorControlVoltage(void) {
   Motor2SetPWM((int) pwm);
 }
 
-void MotorTurnOnControlSpeed(void)
-{
+void MotorTurnOnControlSpeed(void) {
   motor_control_speed = true;
 }
 
-void MotorTurnOffControlSpeed(void)
-{
+void MotorTurnOffControlSpeed(void) {
   motor_control_speed = false;
 }
 
-void MotorClearPosition(void)
-{
+void MotorClearPosition(void) {
   motor1_position = 0;
   motor1_position = 0;
 }
