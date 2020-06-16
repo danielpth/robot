@@ -30,7 +30,8 @@
 /* USER CODE BEGIN Includes */
 #include "motor.h"
 #include "flash.h"
-#include "command.h"
+#include "cmd.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

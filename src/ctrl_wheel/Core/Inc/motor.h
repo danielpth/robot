@@ -16,7 +16,8 @@
 // gear 1:75
 // 1650 pulses per revolution on wheel
 // max distance for encoder 4990.9867272727272727272727272727 mm
-#define MOTOR_TIME_INTERVAL 50 // ms
+#define MOTOR_TIME_INTERVAL 10 // ms
+#define VOLTAGE_TIME_INTERVAL 3 // ms
 #define MOTOR_PULSES 22.0
 #define MOTOR_RATIO 75.0
 #define WHEEL_RADIUS 20.0 // mm
@@ -24,6 +25,7 @@
 
 extern volatile float motor1_speed, motor2_speed;
 extern volatile float motor1_position, motor2_position;
+extern volatile float P, I, D;
 
 void Motor1SetReference(float ref);
 void Motor2SetReference(float ref);

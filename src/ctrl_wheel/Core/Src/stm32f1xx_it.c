@@ -212,7 +212,7 @@ void TIM1_UP_IRQHandler(void)
     MotorCalculate ();
     MotorControlSpeed();
   }
-  if (timer_division % 10 == 0) {
+  if (timer_division % VOLTAGE_TIME_INTERVAL == 0) {
     MotorControlVoltage();
   }
   timer_division++;
