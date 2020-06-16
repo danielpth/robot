@@ -28,11 +28,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "motor.h"
 #include "flash.h"
+#include "cmd.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,14 +66,12 @@ void SystemClock_Config(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
   /* USER CODE BEGIN 1 */
   uint32_t i;
-  char buffer[200];
 
   /* USER CODE END 1 */
 
@@ -128,83 +125,22 @@ int main(void)
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
     }
 
-    HAL_UART_Receive(&huart1, (uint8_t*)buffer, 1, 100);
-
-    switch (buffer[0]) {
-    case 'b':
-    case 'B':
-      HAL_TIM_Base_Stop_IT(&htim1);
-      HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
-      HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
-      HAL_TIM_Encoder_Stop(&htim3, TIM_CHANNEL_1);
-      HAL_TIM_Encoder_Stop(&htim3, TIM_CHANNEL_2);
-      HAL_TIM_Encoder_Stop(&htim4, TIM_CHANNEL_1);
-      HAL_TIM_Encoder_Stop(&htim4, TIM_CHANNEL_2);
-      HAL_ADC_Stop(&hadc1);
-      HAL_Delay(100);
-      HAL_UART_Transmit(&huart1, (uint8_t*) "\n\rJump to boot\n\r", 28, 1000);
-      flash_jump_to_app();
-      break;
-
-    case 'w':
-      Motor1SetReference(100);
-      Motor2SetReference(100);
-      break;
-
-    case 'x':
-      Motor1SetReference(-50);
-      Motor2SetReference(-50);
-      break;
-
-    case 'a':
-      Motor1SetReference(50);
-      Motor2SetReference(-50);
-      break;
-
-    case 'd':
-      Motor1SetReference(-50);
-      Motor2SetReference(50);
-      break;
-
-    case 's':
-      Motor1SetReference(0);
-      Motor2SetReference(0);
-      break;
-    case 'q':
-      //Motor1SetVoltage(12);
-      //Motor2SetVoltage(12);
-      break;
-
-    case 0x01:
-
-    }
-
-    sprintf(buffer, "M: %05d %05d %03d %03d %05u\n\r", (int) motor1_position, (int) motor2_position, (int) motor1_speed,
-        (int) motor2_speed, (unsigned int) BAT_mV);
-    //SonarTrigger();
-    //sprintf((char*) buffer, "M: %d %d %d %d\n\r", (int) MOTOR1_CURRENT,
-    //(int) MOTOR2_CURRENT, (int) BATERY_VOLTAGE, (int) TEMPERATURE);
-    //sprintf((char*) buffer, "M: %d %d %d %d\n\r", (int) adc_buf[0],
-    //(int) adc_buf[1], (int) adc_buf[2], (int) adc_buf[3]);
-    //sprintf((char*) buffer, "M: %d\n\r", );
-    HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 1000);
-
+    CommandControl();
   }
   /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+  RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
 
   /** Initializes the CPU, AHB and APB busses clocks 
-  */
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -212,27 +148,23 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
   /** Initializes the CPU, AHB and APB busses clocks 
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
     Error_Handler();
   }
 }
@@ -242,11 +174,10 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);

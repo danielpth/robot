@@ -208,10 +208,11 @@ void TIM1_UP_IRQHandler(void)
   /* USER CODE END TIM1_UP_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */
-  if (timer_division % 50 == 0) {
+  if (timer_division % MOTOR_TIME_INTERVAL == 0) {
+    MotorCalculate ();
     MotorControlSpeed();
   }
-  if (timer_division % 10 == 0) {
+  if (timer_division % VOLTAGE_TIME_INTERVAL == 0) {
     MotorControlVoltage();
   }
   timer_division++;
