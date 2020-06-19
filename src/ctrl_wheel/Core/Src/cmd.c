@@ -23,7 +23,7 @@ static uint8_t CommandReceive(uint8_t *cmd, uint8_t *buffer, uint8_t size_of_pay
   uint8_t crc = 0x55;
 
   do {
-    status = HAL_UART_Receive(&huart1, &data, 1, 15);
+    status = HAL_UART_Receive(&huart1, &data, 1, 30);
 
     if (status == HAL_OK) {
       HAL_UART_Transmit(&huart1, &data, 1, 10);
@@ -43,7 +43,6 @@ static uint8_t CommandReceive(uint8_t *cmd, uint8_t *buffer, uint8_t size_of_pay
       case STATE_GET_LENGHT:
         length = data;
         if (length > size_of_payload) {
-          state = STATE_START_FRAME;
           status = HAL_ERROR;
           result = PROTOCOL_ERR_LENGTH;
         } else if (length == 0) {
@@ -80,7 +79,12 @@ static uint8_t CommandReceive(uint8_t *cmd, uint8_t *buffer, uint8_t size_of_pay
   } while ((status == HAL_OK) && (state != STATE_DONE));
 
   if (state == STATE_DONE) {
+    uint8_t data = ACK;
+    HAL_UART_Transmit(&huart1, &data, 1, 10);
     result = PROTOCOL_OK;
+  } else if (state != STATE_START_FRAME) {
+    uint8_t data = NACK | result;
+    HAL_UART_Transmit(&huart1, &data, 1, 10);
   }
 
   return result;
@@ -134,6 +138,7 @@ static void CommandJumpBootloader(void) {
  CommandTransmit(&command_status, sizeof(command_status));
  }
  */
+/*
 static void CommandSendResult(uint8_t status) {
   uint8_t rc;
   if (status == PROTOCOL_OK) {
@@ -143,7 +148,7 @@ static void CommandSendResult(uint8_t status) {
   }
   CommandTransmit(rc, NULL, 0);
 }
-
+*/
 static void CommandSetVoltage(uint8_t *buff) {
   struct s_voltage *voltage = (struct s_voltage*) buff;
   Motor1SetVoltage(voltage->voltage1);
@@ -181,7 +186,7 @@ void CommandGetSpeed(void) {
   struct s_speed speed;
   speed.timestamp = HAL_GetTick();
   speed.speed1 = motor1_speed;
-  speed.speed1 = motor2_speed;
+  speed.speed2 = motor2_speed;
   CommandTransmit(CMD_GET_SPEED, &speed, sizeof(speed));
 }
 
