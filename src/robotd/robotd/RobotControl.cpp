@@ -7,19 +7,23 @@ void RobotControl::SetCommand(Command* command)
 
 int RobotControl::StartServer()
 {
-	int sockfd, newsockfd, portno, clilen;
+	int sockfd, newsockfd/*, portno*/, clilen;
 	char buffer[256];
 	struct sockaddr_in serv_addr, cli_addr;
 	int n;
+
+	printf("Starting Remote control\n");
+	cmd->SetSpeed(0, 0);
+	cmd->TurnOnSpeedControl();
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
 		printf("ERROR opening socket\n");
 	memset(&serv_addr, 0, sizeof(serv_addr));
-	portno = 7632;
+	//portno = 7632;
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(portno);
+	serv_addr.sin_port = htons(7632);
 	if (bind(sockfd, (struct sockaddr*)&serv_addr,
 		sizeof(serv_addr)) < 0)
 		printf("ERROR on binding\n");
@@ -51,11 +55,14 @@ int RobotControl::StartServer()
 			printf("\n");
 			*/
 			float speed1, speed2, diff;
-			speed1 = speed2 = (((float)buffer[1]) - 127.0f) * 180.0 / 127.0;
-			diff = (((float)buffer[2]) - 127.0f) * 180.0 / 127.0;
+			speed1 = speed2 = (((float)buffer[1]) - 127.0f) * 180.0f / 127.0f;
+			diff = (((float)buffer[2]) - 127.0f) * 180.0f / 127.0f;
 			speed1 += diff;
 			speed2 -= diff;
 			cmd->SetSpeed(speed1, speed2);
+			//if (buffer[5]) {
+				//system("espeak \"Sai, da, frente\" --stdout | aplay -D 'default'");
+			//}
 		}
 		//printf("Here is the message: %s\n", buffer);
 		//n = write(newsockfd, "I got your message", 18);

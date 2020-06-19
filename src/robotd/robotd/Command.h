@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 #include "Protocol.h"
 /*
 struct __attribute__((__packed__)) s_cmd {
@@ -11,6 +12,7 @@ class Command
 {
 private:
 	Protocol* pt;
+	mutex mtx;
 	//int RunCommand(struct s_cmd* cmd);
 	int GetResponse();
 public:

@@ -62,103 +62,196 @@ int Command::Handler()
 
 int Command::JumpBootloader()
 {
-	pt->Send(CMD_JUMP_BOOTLOADER, NULL, 0);
-	GetResponse();
-	return 0;
+	int rc;
+	mtx.lock();
+	rc = pt->Send(CMD_JUMP_BOOTLOADER, NULL, 0);
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::TurnOnSpeedControl()
 {
-	pt->Send(CMD_TURNON_SPEED_CONTROL, NULL, 0);
-	GetResponse();
-	return 0;
+	int rc;
+	mtx.lock();
+	rc = pt->Send(CMD_TURNON_SPEED_CONTROL, NULL, 0);
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::TurnOffSpeedControl()
 {
-	pt->Send(CMD_TURNOFF_SPEED_CONTROL, NULL, 0);
-	GetResponse();
-	return 0;
+	int rc;
+	mtx.lock();
+	rc = pt->Send(CMD_TURNOFF_SPEED_CONTROL, NULL, 0);
+	if (rc == PROTOCOL_OK) {
+		GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::SetVoltage(float left, float right)
 {
+	int rc;
 	struct s_voltage voltage;
+	mtx.lock();
 	voltage.voltage1 = right;
 	voltage.voltage2 = left;
-	pt->Send(CMD_SET_VOLTAGE, &voltage, sizeof(voltage));
-	GetResponse();
-	return 0;
+	rc = pt->Send(CMD_SET_VOLTAGE, &voltage, sizeof(voltage));
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::SetSpeed(float left, float right)
 {
+	int rc;
 	struct s_speed speed;
+	mtx.lock();
 	speed.speed1 = right;
 	speed.speed2 = left;
-	pt->Send(CMD_SET_SPEED, &speed, sizeof(speed));
-	GetResponse();
-	return 0;
+	rc = pt->Send(CMD_SET_SPEED, &speed, sizeof(speed));
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::SetPosition(float left, float right)
 {
+	int rc;
 	struct s_position pos;
+	mtx.lock();
 	pos.position1 = right;
 	pos.position2 = left;
-	pt->Send(CMD_SET_POSITION, &pos, sizeof(pos));
-	GetResponse();
-	return 0;
+	rc = pt->Send(CMD_SET_POSITION, &pos, sizeof(pos));
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::SetP(float p)
 {
-	pt->Send(CMD_SET_P, &p, sizeof(p));
-	GetResponse();
-	return 0;
+	int rc;
+	mtx.lock();
+	rc = pt->Send(CMD_SET_P, &p, sizeof(p));
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::SetI(float i)
 {
-	pt->Send(CMD_SET_I, &i, sizeof(i));
-	GetResponse();
-	return 0;
+	int rc;
+	mtx.lock();
+	rc = pt->Send(CMD_SET_I, &i, sizeof(i));
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::SetD(float d)
 {
-	pt->Send(CMD_SET_D, &d, sizeof(d));
-	GetResponse();
-	return 0;
+	int rc;
+	mtx.lock();
+	rc = pt->Send(CMD_SET_D, &d, sizeof(d));
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 
 int Command::ClearPosition()
 {
-	pt->Send(CMD_CLEAR_POSITION, NULL, 0);
-	GetResponse();
-	return 0;
+	int rc;
+	mtx.lock();
+	rc = pt->Send(CMD_CLEAR_POSITION, NULL, 0);
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+	}
+	mtx.unlock();
+	return rc;
 }
 int Command::GetSpeed(unsigned long* ts, float* left, float* right)
 {
 	int rc;
 	char cmd;
 	struct s_speed speed;
-	pt->Send(CMD_GET_SPEED, &speed, sizeof(speed));
-	rc = GetResponse();
+	mtx.lock();
+	rc = pt->Send(CMD_GET_SPEED, NULL, 0);
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return rc;
+	}
 	if (rc == PROTOCOL_OK) {
 		rc = pt->Receive(&cmd, &speed, sizeof(speed));
-		if (rc == PROTOCOL_OK) {
-			if (cmd == CMD_GET_SPEED) {
-				*ts = speed.timestamp;
-				*left = speed.speed2;
-				*right = speed.speed1;
-			}
-			else {
-				printf("Wrong command\n");
-				rc = PROTOCOL_ERR_INVALID_CMD;
-			}
-		}
 	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return rc;
+	}
+	if ((rc == PROTOCOL_OK) && (cmd == CMD_GET_SPEED)) {
+		*ts = speed.timestamp;
+		*left = speed.speed2;
+		*right = speed.speed1;
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return PROTOCOL_ERR_INVALID_CMD;
+	}
+	mtx.unlock();
 	return rc;
 }
 int Command::GetPosition(unsigned long* ts, float* left, float* right)
@@ -166,16 +259,38 @@ int Command::GetPosition(unsigned long* ts, float* left, float* right)
 	int rc;
 	char cmd;
 	struct s_position pos;
-	pt->Send(CMD_GET_POSITION, &pos, sizeof(pos));
-	rc = GetResponse();
+	mtx.lock();
+	rc = pt->Send(CMD_GET_POSITION, NULL, 0);
+
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return rc;
+	}
+
 	if (rc == PROTOCOL_OK) {
 		rc = pt->Receive(&cmd, &pos, sizeof(pos));
-		if (rc == PROTOCOL_OK) {
-			*ts = pos.timestamp;
-			*left = pos.position2;
-			*right = pos.position1;
-		}
 	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return rc;
+	}
+	if ((rc == PROTOCOL_OK) && (cmd == CMD_GET_POSITION)) {
+		*ts = pos.timestamp;
+		*left = pos.position2;
+		*right = pos.position1;
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return PROTOCOL_ERR_INVALID_CMD;
+	}
+
+	mtx.unlock();
 	return rc;
 }
 int Command::GetBattery(unsigned long* ts, float* voltage)
@@ -183,15 +298,37 @@ int Command::GetBattery(unsigned long* ts, float* voltage)
 	int rc;
 	char cmd;
 	struct s_battery bat;
-	pt->Send(CMD_GET_BATTERY, &bat, sizeof(bat));
-	rc = GetResponse();
+	mtx.lock();
+	rc = pt->Send(CMD_GET_BATTERY, NULL, 0);
+	if (rc == PROTOCOL_OK) {
+		rc = GetResponse();
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return rc;
+	}
+
 	if (rc == PROTOCOL_OK) {
 		rc = pt->Receive(&cmd, &bat, sizeof(bat));
-		if (rc == PROTOCOL_OK) {
-			*ts = bat.timestamp;
-			*voltage = bat.battery / 4096.0f * 19.8f;
-		}
 	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return rc;
+	}
+
+	if ((rc == PROTOCOL_OK) && (cmd == CMD_GET_BATTERY)) {
+		*ts = bat.timestamp;
+		*voltage = bat.battery / 4096.0f * 19.8f;
+	}
+	else {
+		printf("%s\n", __FUNCTION__);
+		mtx.unlock();
+		return PROTOCOL_ERR_INVALID_CMD;
+	}
+
+	mtx.unlock();
 	return rc;
 }
 int Command::CalibratePID()
