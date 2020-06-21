@@ -1,11 +1,53 @@
-#include "RobotControl.h"
+#include "RemoteControl.h"
 
-void RobotControl::SetCommand(Command* command)
+void RemoteControl::batteryMonitor()
 {
-	cmd = command;
+	unsigned long ts;
+	float voltage;
+	printf("batteryMonitor\n");
+
+	while (runBatteryMonitor) {
+		if (cmd) {
+			cmd->GetBattery(&ts, &voltage);
+			printf("Battery: %.2f\n", voltage);
+
+			if (voltage < 12.0f) {
+				Speak("Battery very low!");
+				Speak("Power off");
+				cmd->System("sudo poweroff");
+			}
+			else if (voltage < 12.8f) {
+				Speak("Battery low!");
+			}
+		}
+		sleep(1);
+	}
 }
 
-int RobotControl::StartServer()
+RemoteControl::RemoteControl(Command* command)
+{
+	if (command == NULL) {
+		printf("Invalid command\n");
+		exit(EXIT_FAILURE);
+	}
+	cmd = command;
+	runBatteryMonitor = true;
+	threadBatteryMonitor = new thread(&RemoteControl::batteryMonitor, this);
+	cmd->SetSpeed(0, 0);
+	cmd->TurnOnSpeedControl();
+}
+
+RemoteControl::~RemoteControl()
+{
+	runBatteryMonitor = false;
+	if (threadBatteryMonitor)
+		threadBatteryMonitor->join();
+	cmd->TurnOffSpeedControl();
+	cmd->SetVoltage(0, 0);
+	delete threadBatteryMonitor;
+}
+
+int RemoteControl::StartServer()
 {
 	int sockfd, newsockfd/*, portno*/, clilen;
 	char buffer[256];
@@ -45,24 +87,15 @@ int RobotControl::StartServer()
 			cmd->SetSpeed(0, 0);
 		}
 		else {
-			/*
-			int i;
-			printf("\nRecebeu: ");
-			for (i = 0; i < n; i++)
-			{
-				printf("0x%02x ", buffer[i]);
-			}
-			printf("\n");
-			*/
 			float speed1, speed2, diff;
 			speed1 = speed2 = (((float)buffer[1]) - 127.0f) * 180.0f / 127.0f;
 			diff = (((float)buffer[2]) - 127.0f) * 180.0f / 127.0f;
 			speed1 += diff;
 			speed2 -= diff;
 			cmd->SetSpeed(speed1, speed2);
-			//if (buffer[5]) {
-				//system("espeak \"Sai, da, frente\" --stdout | aplay -D 'default'");
-			//}
+			if (buffer[5]) {
+				Speak("Sai, da, frente");
+			}
 		}
 		//printf("Here is the message: %s\n", buffer);
 		//n = write(newsockfd, "I got your message", 18);
@@ -71,4 +104,13 @@ int RobotControl::StartServer()
 	shutdown(sockfd, SHUT_RDWR);
 	close(sockfd);
 	return 0;
+}
+
+void RemoteControl::Speak(string sentence)
+{
+	string command;
+	command += "espeak \"";
+	command += sentence;
+	command += "\" --stdout | aplay -D 'default'";
+	cmd->System(command);
 }

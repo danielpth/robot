@@ -3,10 +3,13 @@
 #include "../../ctrl_wheel/Core/Inc/cmd.h"
 
 
-int Protocol::SetSerialPort(SerialPort* serialport)
+Protocol::Protocol(SerialPort* serialport)
 {
+	if (serialport == NULL) {
+		printf("Invalid serial port\n");
+		exit(EXIT_FAILURE);
+	}
 	sp = serialport;
-	return 0;
 }
 
 int Protocol::Send(char cmd, void* parameter, char length)
@@ -25,36 +28,48 @@ int Protocol::Send(char cmd, void* parameter, char length)
 	data[2] = length;
 	memcpy(&data[3], parameter, length);
 
-	for (i = 0; i < length + 3; i++)
-	{
-		crc ^= data[i];
-		sp->WriteByte(data[i]);
+	try {
+		for (i = 0; i < length + 3; i++)
+		{
+			crc ^= data[i];
+			sp->WriteByte(data[i]);
+			sp->DrainWriteBuffer();
+			sp->ReadByte(recv, PROTOCOL_SEND_TIMEOUT);
+			if (data[i] != recv) {
+				printf("Different byte [%d] [0x%02x] [0x%02x] length [%d]\n", i, data[i], recv, length);
+				if (recv & 0x80) {
+					printf("Possible NACK=[0x%02x]\n", recv & 0x7f);
+				}
+				mtx.unlock();
+				return PROTOCOL_ERR_INVALID_BYTE;
+			}
+		}
+		sp->WriteByte(crc);
+		// verify crc
 		sp->DrainWriteBuffer();
 		sp->ReadByte(recv, PROTOCOL_SEND_TIMEOUT);
-		if (data[i] != recv) {
-			printf("Different byte [%d] [0x%02x] [0x%02x] length [%d]\n", i, data[i], recv, length);
+		if (crc != recv) {
+			printf("Different CRC\n");
+			if (recv & 0x80) {
+				printf("Possible NACK=[0x%02x]\n", recv & 0x7f);
+			}
+			mtx.unlock();
+			return PROTOCOL_ERR_INVALID_BYTE;
+		}
+
+		// check ACK or NACK
+		sp->ReadByte(recv, PROTOCOL_SEND_TIMEOUT);
+		if (recv != ACK) {
+			printf("NACK: 0x%02x\n", recv & 0x7F);
 			mtx.unlock();
 			return PROTOCOL_ERR_INVALID_BYTE;
 		}
 	}
-	sp->WriteByte(crc);
-	// verify crc
-	sp->DrainWriteBuffer();
-	sp->ReadByte(recv, PROTOCOL_SEND_TIMEOUT);
-	if (crc != recv) {
-		printf("Different CRC\n");
+	catch (ReadTimeout& rt) {
+		printf("Send Timeout\n");
 		mtx.unlock();
-		return PROTOCOL_ERR_INVALID_BYTE;
+		return PROTOCOL_ERR_TIMEOUT;
 	}
-
-	// check ACK or NACK
-	sp->ReadByte(recv, PROTOCOL_SEND_TIMEOUT);
-	if (recv != ACK) {
-		printf("NACK: 0x%02x\n", recv & 0x7F);
-		mtx.unlock();
-		return PROTOCOL_ERR_INVALID_BYTE;
-	}
-
 	mtx.unlock();
 	return PROTOCOL_OK;
 }
@@ -63,7 +78,8 @@ int Protocol::Receive(char* cmd, void* payload, char size_of_payload)
 {
 	char data;
 	char state = STATE_START_FRAME;
-	char length, index = 0;
+	char length;
+	int index = 0;
 	char* buffer = (char*)payload;
 	char result = PROTOCOL_NONE;
 	char crc = 0x55;

@@ -6,16 +6,25 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <linux/reboot.h>
+#include <errno.h>
 #include <thread>
 
 #include "Command.h"
-class RobotControl
+class RemoteControl
 {
 private:
 	Command* cmd;
+	thread* threadBatteryMonitor;
 	thread* trd;
+	bool runBatteryMonitor;
+	void batteryMonitor();
+
 public:
-	void SetCommand(Command* command);
+	RemoteControl(Command* command);
+	~RemoteControl();
+
 	int StartServer();
+	void Speak(string sentence);
 };
 

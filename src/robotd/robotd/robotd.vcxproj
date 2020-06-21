@@ -87,18 +87,27 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Protocol.cpp" />
-    <ClCompile Include="RobotControl.cpp" />
+    <ClCompile Include="RemoteControl.cpp" />
     <ClCompile Include="SerialPort.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ctrl_wheel\Core\Inc\cmd.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Protocol.h" />
-    <ClInclude Include="RobotControl.h" />
+    <ClInclude Include="RemoteControl.h" />
     <ClInclude Include="SerialPort.h" />
     <ClInclude Include="SerialPortConstants.h" />
   </ItemGroup>
-  <ItemDefinitionGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <Link>
+      <LibraryDependencies>pthread;%(LibraryDependencies)</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <Link>
+      <LibraryDependencies>pthread;%(LibraryDependencies)</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

@@ -1,64 +1,18 @@
 #include "Command.h"
-#include <string.h>
-#include <unistd.h>
-#include "../../ctrl_wheel/Core/Inc/cmd.h"
-/*
-int Command::RunCommand(s_cmd* cmd)
-{
-	switch(cmd->cmd) {
-
-	}
-	return 0;
-}*/
 
 int Command::GetResponse()
 {
-	/*
-	int rc;
-	char status;
-	rc = pt->Receive(&status, NULL, 0);
-	if (rc == PROTOCOL_OK) {
-		if (status == ACK) {
-			return PROTOCOL_OK;
-		}
-		else {
-			printf("NACK: 0x%x\n", status & 0x7F);
-			return (status & 0x7F);
-		}
-	}
-	else {
-		printf("GetResponse fail: 0x%x\n", rc);
-		return rc;
-	}
-	*/
 	return 0;
 }
 
-int Command::SetProtocol(Protocol* protocol)
+Command::Command(Protocol* protocol)
 {
+	if (protocol == NULL) {
+		printf("Invalid protocol\n");
+		exit(EXIT_FAILURE);
+	}
 	pt = protocol;
-	return 0;
 }
-/*
-int Command::Handler()
-{
-	struct s_cmd cmd;
-	int rc;
-
-	rc = pt->Receive(&cmd, sizeof(cmd));
-
-	switch (rc) {
-	case PROTOCOL_OK:
-		RunCommand(&cmd);
-		break;
-
-	default:
-		break;
-	}
-
-	return 0;
-}
-*/
 
 int Command::JumpBootloader()
 {
@@ -464,4 +418,14 @@ int Command::CalibratePID()
 
 	SetSpeed(0, 0);
 	return 0;
+}
+
+int Command::System(string command)
+{
+	int rc;
+	rc = system(command.c_str());
+	if (rc != 0) {
+		printf("%s system fail: rc=[%d] errno=[%d]\n", __FUNCTION__, rc, errno);
+	}
+	return rc;
 }

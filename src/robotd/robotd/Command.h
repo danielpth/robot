@@ -1,12 +1,10 @@
 #pragma once
 #include <mutex>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include "../../ctrl_wheel/Core/Inc/cmd.h"
 #include "Protocol.h"
-/*
-struct __attribute__((__packed__)) s_cmd {
-	char cmd;
-	char parameter[200];
-};
-*/
 
 class Command
 {
@@ -16,9 +14,7 @@ private:
 	//int RunCommand(struct s_cmd* cmd);
 	int GetResponse();
 public:
-	int SetProtocol(Protocol* protocol);
-	//int Handler();
-
+	Command(Protocol* protocol);
 	int JumpBootloader();
 	int TurnOnSpeedControl();
 	int TurnOffSpeedControl();
@@ -33,5 +29,6 @@ public:
 	int GetPosition(unsigned long* ts, float* left, float* right);
 	int GetBattery(unsigned long* ts, float* voltage);
 	int CalibratePID();
+	int System(string command);
 };
 

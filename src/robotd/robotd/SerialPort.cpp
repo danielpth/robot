@@ -2476,7 +2476,8 @@ namespace LibSerial
             elapsed_time = current_time - entry_time ;
 
             // Calculate the elapsed number of milliseconds.
-            elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() ;
+            //elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() ;
+            elapsed_ms = (size_t)(elapsed_time).count();
 
             // If more than msTimeout milliseconds have elapsed while
             // waiting for data, then we throw a ReadTimeout exception.
