@@ -6,6 +6,8 @@ void RemoteControl::batteryMonitor()
 	float voltage;
 	printf("batteryMonitor\n");
 
+	runBatteryMonitor = true;
+
 	while (runBatteryMonitor) {
 		if (cmd) {
 			cmd->GetBattery(&ts, &voltage);
@@ -20,7 +22,7 @@ void RemoteControl::batteryMonitor()
 				Speak("Battery low!");
 			}
 		}
-		sleep(1);
+		sleep(3);
 	}
 }
 
@@ -31,10 +33,11 @@ RemoteControl::RemoteControl(Command* command)
 		exit(EXIT_FAILURE);
 	}
 	cmd = command;
-	runBatteryMonitor = true;
+	runBatteryMonitor = false;
+	remoteControl = false;
 	threadBatteryMonitor = new thread(&RemoteControl::batteryMonitor, this);
-	cmd->SetSpeed(0, 0);
-	cmd->TurnOnSpeedControl();
+	cmd->TurnOffSpeedControl();
+	cmd->SetVoltage(0, 0);
 }
 
 RemoteControl::~RemoteControl()
@@ -42,67 +45,156 @@ RemoteControl::~RemoteControl()
 	runBatteryMonitor = false;
 	if (threadBatteryMonitor)
 		threadBatteryMonitor->join();
+	StopServer();
 	cmd->TurnOffSpeedControl();
 	cmd->SetVoltage(0, 0);
 	delete threadBatteryMonitor;
 }
 
+int RemoteControl::StopServer()
+{
+	printf("Stop remote control\n");
+	if (remoteControl) {
+		printf("Disconnecting all clients\n");
+		for (std::list<int>::iterator it = clientSocketfd.begin(); it != clientSocketfd.end(); ++it)
+		{
+			printf("Disconnecting (%d)\n", *it);
+			shutdown(*it, SHUT_RDWR);
+			close(*it);
+		}
+		remoteControl = false;
+
+		shutdown(bindSockfd, SHUT_RDWR);
+		close(bindSockfd);
+	}
+	return 0;
+}
+
 int RemoteControl::StartServer()
 {
-	int sockfd, newsockfd/*, portno*/, clilen;
-	char buffer[256];
+	threadServerRemoteControl = new thread(&RemoteControl::RemoteControlTread, this);
+	return 0;
+}
+
+int RemoteControl::RemoteControlTread()
+{
+	int clilen, newsockfd;
 	struct sockaddr_in serv_addr, cli_addr;
-	int n;
 
 	printf("Starting Remote control\n");
 	cmd->SetSpeed(0, 0);
 	cmd->TurnOnSpeedControl();
 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0)
+	bindSockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (bindSockfd < 0) {
 		printf("ERROR opening socket\n");
+		return -1;
+	}
+
 	memset(&serv_addr, 0, sizeof(serv_addr));
 	//portno = 7632;
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(7632);
-	if (bind(sockfd, (struct sockaddr*)&serv_addr,
-		sizeof(serv_addr)) < 0)
+	if (bind(bindSockfd, (struct sockaddr*)&serv_addr,
+		sizeof(serv_addr)) < 0) {
 		printf("ERROR on binding\n");
-	listen(sockfd, 5);
+		return -1;
+	}
+	
+	listen(bindSockfd, 2);
 	clilen = sizeof(cli_addr);
-	newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, (socklen_t*)&clilen);
-	if (newsockfd < 0)
-		printf("ERROR on accept\n");
-	else
-		printf("Client connected\n");
-	while (1) {
-		bzero(buffer, 256);
-		//n = read(newsockfd, buffer, 255);
-		n = read(newsockfd, buffer, 6);
-		if (n < 0) {
-			printf("ERROR reading from socket\n");
-		}
-		else if (n == 0) {
-			cmd->SetSpeed(0, 0);
+
+	remoteControl = true;
+
+	while (remoteControl) {
+		newsockfd = accept(bindSockfd, (struct sockaddr*)&cli_addr, (socklen_t*)&clilen);
+		if (newsockfd < 0) {
+			printf("ERROR on accept\n");
 		}
 		else {
-			float speed1, speed2, diff;
-			speed1 = speed2 = (((float)buffer[1]) - 127.0f) * 180.0f / 127.0f;
-			diff = (((float)buffer[2]) - 127.0f) * 180.0f / 127.0f;
-			speed1 += diff;
-			speed2 -= diff;
-			cmd->SetSpeed(speed1, speed2);
-			if (buffer[5]) {
-				Speak("Sai, da, frente");
+			printf("Client connected\n");
+			thread* t = new thread(&RemoteControl::HandleClient, this, newsockfd);
+			clientSocketfd.push_back(newsockfd);
+		}
+	}
+
+	printf("Closing remote control\n");
+
+	shutdown(bindSockfd, SHUT_RDWR);
+	close(bindSockfd);
+
+	cmd->TurnOffSpeedControl();
+	cmd->SetVoltage(0, 0);
+
+	return 0;
+}
+
+int RemoteControl::HandleClient(int clientSocket)
+{
+	float speed1_old = 0, speed2_old = 0;
+	char buffer[256];
+	int n;
+	fd_set read_sd;
+	FD_ZERO(&read_sd);
+	FD_SET(clientSocket, &read_sd);
+
+	while (1) {
+		fd_set rsd = read_sd;
+
+		int sel = select(clientSocket + 1, &rsd, 0, 0, 0);
+
+		if (sel > 0) {
+			// client has performed some activity (sent data or disconnected?)
+			bzero(buffer, 256);
+			n = recv(clientSocket, buffer, sizeof(buffer), 0);
+
+			if (n > 0) {
+				// got data from the client.
+				/*for (int i = 0; i < n; i++) {
+					printf("Buffer(%x) valor: 0x%x\n");
+				}*/
+				
+				float speed1, speed2, diff;
+				speed1 = speed2 = (((float)buffer[1]) - 127.0f) * 180.0f / 127.0f;
+				diff = (((float)buffer[2]) - 127.0f) * 180.0f / 127.0f;
+				speed1 += diff;
+				speed2 -= diff;
+				if ((speed1 != speed1_old) || (speed2 != speed2_old))
+				{
+					speed1_old = speed1;
+					speed2_old = speed2;
+					cmd->SetSpeed(speed1, speed2);
+				}
+				if (buffer[5]) {
+					Speak("Sai da frente");
+				}
+				
+			}
+			else if (n == 0) {
+				// client disconnected.
+				cmd->SetSpeed(0, 0);
+				printf("Client disconnected.\n");
+				break;
+			}
+			else {
+				// error receiving data from client. You may want to break from
+				// while-loop here as well.
+				cmd->SetSpeed(0, 0);
+				printf("Error receiving data\n");
+				break;
 			}
 		}
-		//printf("Here is the message: %s\n", buffer);
-		//n = write(newsockfd, "I got your message", 18);
+		else if (sel < 0) {
+			// grave error occurred.
+			cmd->SetSpeed(0, 0);
+			printf("Error receiving data\n");
+			break;
+		}
 	}
-	if (n < 0) printf("ERROR writing to socket\n");
-	shutdown(sockfd, SHUT_RDWR);
-	close(sockfd);
+	shutdown(clientSocket, SHUT_RDWR);
+	close(clientSocket);
+	clientSocketfd.remove(clientSocket);
 	return 0;
 }
 
@@ -111,6 +203,6 @@ void RemoteControl::Speak(string sentence)
 	string command;
 	command += "espeak \"";
 	command += sentence;
-	command += "\" --stdout | aplay -D 'default'";
+	command += "\" --stdout -vbrazil | aplay -D 'default' &";
 	cmd->System(command);
 }
