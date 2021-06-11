@@ -7,6 +7,12 @@
     <RemoteTarget>992757586;172.16.0.1 (username=, port=22222, authentication=Password)</RemoteTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <RemoteTarget>-615310661;172.16.0.5 (username=, port=22, authentication=Password)</RemoteTarget>
+    <RemoteDebuggingTarget>172.16.10.100 (username=pi, port=22, authentication=Password)</RemoteDebuggingTarget>
+    <DebuggerFlavor>LinuxDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <RemoteTarget>-615310661;172.16.10.100 (username=, port=22, authentication=Password)</RemoteTarget>
+    <RemoteDebuggingTarget>172.16.10.100 (username=pi, port=22, authentication=Password)</RemoteDebuggingTarget>
+    <DebuggerFlavor>LinuxDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>
