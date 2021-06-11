@@ -72,6 +72,7 @@ void SystemClock_Config(void);
 int main(void) {
   /* USER CODE BEGIN 1 */
   uint32_t i;
+  uint32_t lastPrintUs = ticks_getMicroSecond();
 
   /* USER CODE END 1 */
 
