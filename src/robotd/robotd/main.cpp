@@ -16,6 +16,7 @@ extern char* optarg;
 int main(int argc, char* argv[])
 {
 	string serial_port_path = "/dev/ttyUSB0";
+	//string serial_port_path = "/dev/serial0";
 	int opt, rc;
 	bool daemonize = false, run = false;
 	sigset_t sig_set;
@@ -46,6 +47,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	setenv("DISPLAY", ":0.0", 1);
+
 	if (run) {
 		if (daemonize) {
 			/*
@@ -71,13 +74,16 @@ int main(int argc, char* argv[])
 		Command* cmd = new Command(pt);
 		RemoteControl* ctrl = new RemoteControl(cmd);
 
+		ctrl->StartServer();
+		//sleep(10);
+		//ctrl->StopServer();
 		// Wait until some signal is received
 
 		// TODO: finish it
 		sigemptyset(&sig_set);
 		sigaddset(&sig_set, SIGQUIT);
 		sigaddset(&sig_set, SIGUSR1);
-		s = pthread_sigmask(SIG_BLOCK, &set, NULL);
+		//s = pthread_sigmask(SIG_BLOCK, &set, NULL);
 		sigwait(&sig_set, &sig);
 
 		delete ctrl;
