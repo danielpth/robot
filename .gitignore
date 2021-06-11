@@ -57,3 +57,8 @@ dkms.conf
 *.srec
 *.list
 *.symbolsrec
+
+.vs
+obj
+Debug
+Release
