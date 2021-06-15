@@ -15,8 +15,9 @@ extern char* optarg;
 
 int main(int argc, char* argv[])
 {
-	string serial_port_path = "/dev/ttyUSB0";
+	//string serial_port_path = "/dev/ttyUSB0";
 	//string serial_port_path = "/dev/serial0";
+	string serial_port_path = "/dev/ttyS0";
 	int opt, rc;
 	bool daemonize = false, run = false;
 	sigset_t sig_set;

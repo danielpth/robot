@@ -33,13 +33,14 @@ int Protocol::Send(char cmd, void* parameter, char length)
 		{
 			crc ^= data[i];
 			sp->WriteByte(data[i]);
-			sp->DrainWriteBuffer();
+			//sp->DrainWriteBuffer();
 			sp->ReadByte(recv, PROTOCOL_SEND_TIMEOUT);
 			if (data[i] != recv) {
 				printf("Different byte [%d] [0x%02x] [0x%02x] length [%d]\n", i, data[i], recv, length);
 				if (recv & 0x80) {
 					printf("Possible NACK=[0x%02x]\n", recv & 0x7f);
 				}
+				ErrorHandler();
 				mtx.unlock();
 				return PROTOCOL_ERR_INVALID_BYTE;
 			}
@@ -142,6 +143,7 @@ int Protocol::Receive(char* cmd, void* payload, char size_of_payload)
 			else {
 				result = PROTOCOL_ERR_CRC;
 				printf("CRC Fail\n");
+				ErrorHandler();
 			}
 			break;
 
@@ -154,4 +156,10 @@ int Protocol::Receive(char* cmd, void* payload, char size_of_payload)
 
 	mtx.unlock();
 	return result;
+}
+
+int Protocol::ErrorHandler()
+{
+	sp->FlushIOBuffers();
+	return 0;
 }

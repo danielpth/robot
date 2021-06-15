@@ -10,6 +10,8 @@ class Protocol
 private:
 	SerialPort* sp;
 	mutex mtx;
+	int ErrorHandler();
+
 public:
 	Protocol(SerialPort* serialport);
 	int Send(char cmd, void* parameter, char length);

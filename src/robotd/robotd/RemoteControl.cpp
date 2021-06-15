@@ -2,6 +2,7 @@
 
 void RemoteControl::batteryMonitor()
 {
+	int rc;
 	unsigned long ts;
 	float voltage;
 	printf("batteryMonitor\n");
@@ -10,16 +11,20 @@ void RemoteControl::batteryMonitor()
 
 	while (runBatteryMonitor) {
 		if (cmd) {
-			cmd->GetBattery(&ts, &voltage);
-			printf("Battery: %.2f\n", voltage);
-
-			if (voltage < 12.0f) {
-				Speak("Battery very low!");
-				Speak("Power off");
-				cmd->System("sudo poweroff");
-			}
-			else if (voltage < 12.8f) {
-				Speak("Battery low!");
+			rc = cmd->GetBattery(&ts, &voltage);
+			if (rc == PROTOCOL_OK)
+			{
+				printf("Battery: %.2f\n", voltage);
+				
+				if (voltage < 12.0f) {
+					Speak("Bateria muito baixa!");
+					sleep(3);
+					Speak("Desligando");
+					cmd->System("sudo poweroff");
+				}
+				else if (voltage < 12.8f) {
+					Speak("Bateria baixa");
+				}
 			}
 		}
 		sleep(3);
@@ -101,7 +106,7 @@ int RemoteControl::RemoteControlTread()
 		printf("ERROR on binding\n");
 		return -1;
 	}
-	
+
 	listen(bindSockfd, 2);
 	clilen = sizeof(cli_addr);
 
@@ -134,7 +139,7 @@ int RemoteControl::HandleClient(int clientSocket)
 {
 	float speed1_old = 0, speed2_old = 0;
 	char buffer[256];
-	int n;
+	int n, rc;
 	fd_set read_sd;
 	FD_ZERO(&read_sd);
 	FD_SET(clientSocket, &read_sd);
@@ -154,7 +159,7 @@ int RemoteControl::HandleClient(int clientSocket)
 				/*for (int i = 0; i < n; i++) {
 					printf("Buffer(%x) valor: 0x%x\n");
 				}*/
-				
+
 				float speed1, speed2, diff;
 				speed1 = speed2 = (((float)buffer[1]) - 127.0f) * 180.0f / 127.0f;
 				diff = (((float)buffer[2]) - 127.0f) * 180.0f / 127.0f;
@@ -162,14 +167,20 @@ int RemoteControl::HandleClient(int clientSocket)
 				speed2 -= diff;
 				if ((speed1 != speed1_old) || (speed2 != speed2_old))
 				{
-					speed1_old = speed1;
-					speed2_old = speed2;
-					cmd->SetSpeed(speed1, speed2);
+					do {
+						rc = cmd->SetSpeed(speed1, speed2);
+					} while (rc != PROTOCOL_OK);
+
+					if (rc == PROTOCOL_OK)
+					{
+						speed1_old = speed1;
+						speed2_old = speed2;
+					}
 				}
 				if (buffer[5]) {
 					Speak("Sai da frente");
 				}
-				
+
 			}
 			else if (n == 0) {
 				// client disconnected.

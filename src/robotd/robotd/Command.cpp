@@ -79,6 +79,7 @@ int Command::SetVoltage(float left, float right)
 
 int Command::SetSpeed(float left, float right)
 {
+	// Speed is Wheel RPM
 	int rc;
 	struct s_speed speed;
 	mtx.lock();
@@ -258,7 +259,7 @@ int Command::GetBattery(unsigned long* ts, float* voltage)
 		rc = GetResponse();
 	}
 	else {
-		printf("%s\n", __FUNCTION__);
+		printf("Error on [%s] sending data\n", __FUNCTION__);
 		mtx.unlock();
 		return rc;
 	}
@@ -267,7 +268,7 @@ int Command::GetBattery(unsigned long* ts, float* voltage)
 		rc = pt->Receive(&cmd, &bat, sizeof(bat));
 	}
 	else {
-		printf("%s\n", __FUNCTION__);
+		printf("Error on [%s] receiving data\n", __FUNCTION__);
 		mtx.unlock();
 		return rc;
 	}
@@ -277,7 +278,7 @@ int Command::GetBattery(unsigned long* ts, float* voltage)
 		*voltage = bat.battery / 4096.0f * 19.8f;
 	}
 	else {
-		printf("%s\n", __FUNCTION__);
+		printf("Error on [%s] rc=[%d] cmd=[%d]\n", __FUNCTION__, rc, cmd);
 		mtx.unlock();
 		return PROTOCOL_ERR_INVALID_CMD;
 	}
