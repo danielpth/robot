@@ -9,7 +9,7 @@
 #define TEMPERATURE     ADC1->JDR4
 #define BAT_mV          (BATTERY*19800)/4096 // 19.8 V = 19800mV
 
-#define MOTOR_MAX_SPEED 180.0
+#define MOTOR_MAX_SPEED 180.0 // Wheel RPM
 #define MOTOR_MAX_VOLTAGE 12
 
 // 22 pulses per revolution on motor
