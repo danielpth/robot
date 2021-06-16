@@ -12,6 +12,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 //#include "opencv2/nonfree/nonfree.hpp"
 
+//pkg-config --cflags opencv4
+//pkg-config --libs opencv4
 
 using namespace std;
 using namespace cv;
@@ -23,7 +25,7 @@ int main()
     // If the input is the web camera, pass 0 instead of the video file name
     VideoCapture cap(0);
 
-    setenv("DISPLAY", ":1", 1);
+    setenv("DISPLAY", ":0.0", 1);
 
     // Check if camera opened successfully
     if (!cap.isOpened()) {

@@ -16,16 +16,14 @@ class RemoteControl
 {
 private:
 	Command* cmd;
-	thread* threadBatteryMonitor;
 	thread* threadServerRemoteControl;
 	thread* trd;
-	bool runBatteryMonitor;
-	void batteryMonitor();
 	bool remoteControl;
 	int bindSockfd;
 	list<int> clientSocketfd;
 	
 	int RemoteControlTread();
+	int HandleClient(int clientSocket);
 
 public:
 	RemoteControl(Command* command);
@@ -33,7 +31,6 @@ public:
 
 	int StartServer();
 	int StopServer();
-	int HandleClient(int clientSocket);
 	void Speak(string sentence);
 };
 

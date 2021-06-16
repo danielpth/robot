@@ -82,7 +82,11 @@
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetExt />
+  </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="BatteryMonitor.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Protocol.cpp" />
@@ -91,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ctrl_wheel\Core\Inc\cmd.h" />
+    <ClInclude Include="BatteryMonitor.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="RemoteControl.h" />

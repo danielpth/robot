@@ -1,35 +1,5 @@
 #include "RemoteControl.h"
 
-void RemoteControl::batteryMonitor()
-{
-	int rc;
-	unsigned long ts;
-	float voltage;
-	printf("batteryMonitor\n");
-
-	runBatteryMonitor = true;
-
-	while (runBatteryMonitor) {
-		if (cmd) {
-			rc = cmd->GetBattery(&ts, &voltage);
-			if (rc == PROTOCOL_OK)
-			{
-				printf("Battery: %.2f\n", voltage);
-				
-				if (voltage < 12.0f) {
-					Speak("Bateria muito baixa!");
-					sleep(3);
-					Speak("Desligando");
-					cmd->System("sudo poweroff");
-				}
-				else if (voltage < 12.8f) {
-					Speak("Bateria baixa");
-				}
-			}
-		}
-		sleep(3);
-	}
-}
 
 RemoteControl::RemoteControl(Command* command)
 {
@@ -38,22 +8,16 @@ RemoteControl::RemoteControl(Command* command)
 		exit(EXIT_FAILURE);
 	}
 	cmd = command;
-	runBatteryMonitor = false;
 	remoteControl = false;
-	threadBatteryMonitor = new thread(&RemoteControl::batteryMonitor, this);
 	cmd->TurnOffSpeedControl();
 	cmd->SetVoltage(0, 0);
 }
 
 RemoteControl::~RemoteControl()
 {
-	runBatteryMonitor = false;
-	if (threadBatteryMonitor)
-		threadBatteryMonitor->join();
 	StopServer();
 	cmd->TurnOffSpeedControl();
 	cmd->SetVoltage(0, 0);
-	delete threadBatteryMonitor;
 }
 
 int RemoteControl::StopServer()

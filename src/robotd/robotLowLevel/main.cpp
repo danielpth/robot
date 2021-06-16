@@ -3,10 +3,12 @@
 #include <getopt.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdlib.h>
 #include "SerialPort.h"
 #include "Protocol.h"
 #include "Command.h"
 #include "RemoteControl.h"
+#include "BatteryMonitor.h"
 
 using namespace std;
 using namespace LibSerial;
@@ -73,6 +75,7 @@ int main(int argc, char* argv[])
 			LibSerial::StopBits::STOP_BITS_1);
 		Protocol* pt = new Protocol(sp);
 		Command* cmd = new Command(pt);
+		BatteryMonitor* bm = new BatteryMonitor(cmd);
 		RemoteControl* ctrl = new RemoteControl(cmd);
 
 		ctrl->StartServer();
@@ -88,6 +91,7 @@ int main(int argc, char* argv[])
 		sigwait(&sig_set, &sig);
 
 		delete ctrl;
+		delete bm;
 		delete cmd;
 		delete pt;
 		delete sp;

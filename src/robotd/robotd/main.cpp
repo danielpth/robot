@@ -3,13 +3,9 @@
 #include <getopt.h>
 #include <errno.h>
 #include <signal.h>
-#include "SerialPort.h"
-#include "Protocol.h"
-#include "Command.h"
-#include "RemoteControl.h"
+#include <stdlib.h>
 
 using namespace std;
-using namespace LibSerial;
 
 extern char* optarg;
 
@@ -17,7 +13,7 @@ int main(int argc, char* argv[])
 {
 	//string serial_port_path = "/dev/ttyUSB0";
 	//string serial_port_path = "/dev/serial0";
-	string serial_port_path = "/dev/ttyS0";
+	//string serial_port_path = "/dev/ttyS0";
 	int opt, rc;
 	bool daemonize = false, run = false;
 	sigset_t sig_set;
@@ -39,12 +35,12 @@ int main(int argc, char* argv[])
 			break;
 
 		case 'p':
-			serial_port_path = optarg;
+			//serial_port_path = optarg;
 			break;
 
 		default: /* '?' */
 			fprintf(stderr, "Usage: %s [options]\n", argv[0]);
-			exit(EXIT_FAILURE);
+			exit(0);
 		}
 	}
 
@@ -66,19 +62,6 @@ int main(int argc, char* argv[])
 				printf("daemonize fail: %d\n", errno);
 			}
 		}
-		SerialPort* sp = new SerialPort(serial_port_path, LibSerial::BaudRate::BAUD_115200,
-			LibSerial::CharacterSize::CHAR_SIZE_8,
-			LibSerial::FlowControl::FLOW_CONTROL_NONE,
-			LibSerial::Parity::PARITY_NONE,
-			LibSerial::StopBits::STOP_BITS_1);
-		Protocol* pt = new Protocol(sp);
-		Command* cmd = new Command(pt);
-		RemoteControl* ctrl = new RemoteControl(cmd);
-
-		ctrl->StartServer();
-		//sleep(10);
-		//ctrl->StopServer();
-		// Wait until some signal is received
 
 		// TODO: finish it
 		sigemptyset(&sig_set);
@@ -87,10 +70,6 @@ int main(int argc, char* argv[])
 		//s = pthread_sigmask(SIG_BLOCK, &set, NULL);
 		sigwait(&sig_set, &sig);
 
-		delete ctrl;
-		delete cmd;
-		delete pt;
-		delete sp;
 	}
 
 	return 0;
