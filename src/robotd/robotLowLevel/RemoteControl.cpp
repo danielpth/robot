@@ -83,7 +83,7 @@ int RemoteControl::RemoteControlTread()
 		}
 		else {
 			printf("Client connected\n");
-			thread* t = new thread(&RemoteControl::HandleClient, this, newsockfd);
+			/*thread* t =*/ new thread(&RemoteControl::HandleClient, this, newsockfd);
 			clientSocketfd.push_back(newsockfd);
 		}
 	}

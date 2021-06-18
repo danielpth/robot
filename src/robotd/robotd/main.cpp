@@ -5,19 +5,18 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#include "ProcessManagement.h"
+
 using namespace std;
 
 extern char* optarg;
 
 int main(int argc, char* argv[])
 {
-	//string serial_port_path = "/dev/ttyUSB0";
-	//string serial_port_path = "/dev/serial0";
-	//string serial_port_path = "/dev/ttyS0";
 	int opt, rc;
 	bool daemonize = false, run = false;
-	sigset_t sig_set;
-	int sig;
+	//sigset_t sig_set;
+	//int sig;
 
 	while ((opt = getopt(argc, argv, "hrdp:")) != -1) {
 		switch (opt) {
@@ -63,13 +62,18 @@ int main(int argc, char* argv[])
 			}
 		}
 
+		ProcessManagement pm;
+		//pm.StartProcess("robotLowLevel", "/home/pi/projects/robotLowLevel/bin/ARM/Release/robotLowLevel");
+		pm.StartProcess("robotLowLevel", "/home/pi/robotLowLevel");
+		pm.Monitor();
+		/*
 		// TODO: finish it
 		sigemptyset(&sig_set);
 		sigaddset(&sig_set, SIGQUIT);
 		sigaddset(&sig_set, SIGUSR1);
 		//s = pthread_sigmask(SIG_BLOCK, &set, NULL);
 		sigwait(&sig_set, &sig);
-
+		*/
 	}
 
 	return 0;

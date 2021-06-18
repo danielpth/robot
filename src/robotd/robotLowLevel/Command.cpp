@@ -258,8 +258,9 @@ int Command::GetBattery(unsigned long* ts, float* voltage)
 	if (rc == PROTOCOL_OK) {
 		rc = GetResponse();
 	}
-	else {
-		printf("Error on [%s] sending data\n", __FUNCTION__);
+	else
+	{
+		printf("Error on [%s] sending data rc=[%d]\n", __FUNCTION__, rc);
 		mtx.unlock();
 		return rc;
 	}

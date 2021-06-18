@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h> 
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <string.h>
 #include <linux/reboot.h>
 #include <errno.h>
@@ -12,6 +10,7 @@
 #include <list>
 
 #include "Command.h"
+#include "Speak.h"
 
 class BatteryMonitor
 {

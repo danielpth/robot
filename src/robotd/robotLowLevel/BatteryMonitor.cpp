@@ -75,6 +75,11 @@ void BatteryMonitor::FastProbe()
 			filterAcc += voltage;
 			i++;
 		}
+		else
+		{
+			printf("Battery FastProbe error [%d]\n", rc);
+			sleep(5);
+		}
 		usleep(100000);
 	}
 	filterAcc /= i;
@@ -113,6 +118,16 @@ void BatteryMonitor::funcBatteryMonitor()
 					//Speak("Bateria baixa");
 				}
 			}
+			else
+			{
+				printf("GetBattery CMD Error\n");
+				sleep(5);
+			}
+		}
+		else
+		{
+			printf("Battery monitor have no CMD\n");
+			sleep(5);
 		}
 		usleep(interval_ms * 1000);
 	}

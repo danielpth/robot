@@ -52,6 +52,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Makefile</ConfigurationType>
+    <RemoteRootDir>~/projects/</RemoteRootDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -85,6 +86,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <TargetExt />
+    <RemoteBuildCommandLine>make all</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildOutputs>robotLowLevel</RemoteBuildOutputs>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="BatteryMonitor.cpp" />
     <ClCompile Include="Command.cpp" />
@@ -92,6 +100,7 @@
     <ClCompile Include="Protocol.cpp" />
     <ClCompile Include="RemoteControl.cpp" />
     <ClCompile Include="SerialPort.cpp" />
+    <ClCompile Include="Speak.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ctrl_wheel\Core\Inc\cmd.h" />
@@ -101,8 +110,17 @@
     <ClInclude Include="RemoteControl.h" />
     <ClInclude Include="SerialPort.h" />
     <ClInclude Include="SerialPortConstants.h" />
+    <ClInclude Include="Speak.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <LibraryDependencies>pthread;%(LibraryDependencies)</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
       <LibraryDependencies>pthread;%(LibraryDependencies)</LibraryDependencies>
     </Link>
