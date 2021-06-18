@@ -1,17 +1,16 @@
 #****************************************************************************
 #
-# Makefile for robotd.
+# Makefile for robotLowLevel.
 # Daniel Porath
 #
 #****************************************************************************
 
 # DEBUG can be set to YES to include debugging info, or NO otherwise
-DEBUG          := NO
+#DEBUG          := NO
 
 # PROFILE can be set to YES to include profiling info, or NO otherwise
-PROFILE        := NO
+#PROFILE        := NO
 
-#TINYXML_USE_STL := YES
 #****************************************************************************
 
 CC     := gcc
@@ -50,12 +49,6 @@ endif
 #****************************************************************************
 # Preprocessor directives
 #****************************************************************************
-
-ifeq (YES, ${TINYXML_USE_STL})
-  DEFS := -DTIXML_USE_STL
-else
-  DEFS :=
-endif
 
 LINUX_LIBS := pthread
 
@@ -97,10 +90,12 @@ SRCS := $(addprefix ${SRC_DIR}, $(addsuffix .cpp,${FILES_CPP}))
 
 OBJS := $(addprefix ${OBJ_DIR}, $(addsuffix .o, ${FILES_CPP}))
 
-all:
-	make _all -j8
+#all:
+#	make _all -j8
 
-_all: ${OBJ_DIR} ${OUTPUT}
+#_all: ${OBJ_DIR} ${OUTPUT}
+
+all: ${OBJ_DIR} ${OUTPUT}
 
 ${OBJ_DIR}:
 	@echo "Creating OBJ dir"

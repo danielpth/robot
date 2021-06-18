@@ -158,6 +158,7 @@ int ProcessManagement::Monitor()
 		else
 		{
 			printf("Wait failure [%d] [%s]\n", errno, strerror(errno));
+			sleep(5);
 		}
 
 	}
