@@ -10,7 +10,7 @@ volatile float motor1_error, motor2_error;
 volatile float motor1_voltage, motor2_voltage;
 volatile float cnt1, cnt2;
 volatile float P = 3.6, I = 6.0, D = 0.011;
-float Kv = 12.0 / 180.0; // 12V sao 180 RPM na roda
+float Kv = 12.0 / 180.0; // 12V -> 180 RPM on wheel
 bool motor_control_speed = false, motor_control_position = false;
 
 void Motor1SetPWM(int pwm1) {
