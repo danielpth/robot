@@ -99,10 +99,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="ProcessManagement.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ProcessManagement.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
