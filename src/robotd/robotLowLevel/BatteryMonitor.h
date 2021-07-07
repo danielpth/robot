@@ -25,7 +25,7 @@ private:
 	double percent;
 	// Method
 	void funcBatteryMonitor();
-	double ConvertVoltagePercent(double voltage);
+	double ConvertVoltagePercent(double voltage, bool isCharging);
 	double FilterVoltage(double voltage);
 	void FastProbe();
 	void ProbeFilter();
@@ -34,5 +34,7 @@ public:
 	BatteryMonitor(Command* command);
 	~BatteryMonitor();
 
+	// Callback
+	void (*EventBattery)(double percent);
 };
 

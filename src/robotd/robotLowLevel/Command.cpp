@@ -421,7 +421,7 @@ int Command::CalibratePID()
 	SetSpeed(0, 0);
 	return 0;
 }
-
+/*
 int Command::System(string command)
 {
 	int rc;
@@ -431,3 +431,4 @@ int Command::System(string command)
 	}
 	return rc;
 }
+*/

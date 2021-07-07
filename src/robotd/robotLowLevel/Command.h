@@ -29,6 +29,6 @@ public:
 	int GetPosition(unsigned long* ts, float* left, float* right);
 	int GetBattery(unsigned long* ts, float* voltage);
 	int CalibratePID();
-	int System(string command);
+	//int System(string command);
 };
 

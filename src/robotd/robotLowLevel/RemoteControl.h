@@ -31,6 +31,5 @@ public:
 
 	int StartServer();
 	int StopServer();
-	void Speak(string sentence);
 };
 

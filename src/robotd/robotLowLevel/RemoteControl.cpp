@@ -143,7 +143,7 @@ int RemoteControl::HandleClient(int clientSocket)
 					}
 				}
 				if (buffer[5]) {
-					Speak("Sai da frente");
+					//Speak("Sai da frente");
 				}
 
 			}
@@ -174,11 +174,3 @@ int RemoteControl::HandleClient(int clientSocket)
 	return 0;
 }
 
-void RemoteControl::Speak(string sentence)
-{
-	string command;
-	command += "espeak \"";
-	command += sentence;
-	command += "\" --stdout -vbrazil | aplay -D 'default' &";
-	cmd->System(command);
-}

@@ -9,11 +9,36 @@
 #include "Command.h"
 #include "RemoteControl.h"
 #include "BatteryMonitor.h"
+#include "Speak.h"
 
 using namespace std;
 using namespace LibSerial;
 
 extern char* optarg;
+
+Speak spk;
+
+void HandlerBattery(double percent)
+{
+	static time_t lastTimeSpeak = 0;
+
+	if (percent < 1.0) {
+		printf("Battery very low!\n");
+		spk.Talk("Battery very low! Shuting down.");
+		sleep(5);
+		system("sudo poweroff &");
+	}
+	else if (percent <= 10.0)
+	{
+		static time_t now;
+		printf("Battery low\n");
+		time(&now);
+		if (difftime(now, lastTimeSpeak) > 10) {
+			lastTimeSpeak = now;
+			spk.Talk("Battery low. " + to_string((int)percent) + " percent.");
+		}
+	}
+}
 
 int main(int argc, char* argv[])
 {
@@ -78,12 +103,16 @@ int main(int argc, char* argv[])
 		BatteryMonitor* bm = new BatteryMonitor(cmd);
 		RemoteControl* ctrl = new RemoteControl(cmd);
 
+		bm->EventBattery = &HandlerBattery;
+
 		ctrl->StartServer();
 		//sleep(10);
 		//ctrl->StopServer();
 		// Wait until some signal is received
 
 		// TODO: finish it
+		spk.Talk("I am ready!");
+
 		sigemptyset(&sig_set);
 		sigaddset(&sig_set, SIGQUIT);
 		sigaddset(&sig_set, SIGUSR1);

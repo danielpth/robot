@@ -6,6 +6,7 @@ BatteryMonitor::BatteryMonitor(Command* command)
 		printf("Invalid command\n");
 		exit(EXIT_FAILURE);
 	}
+	EventBattery = NULL;
 	ProbeFilter();
 	cmd = command;
 	isThreadRunning = false;
@@ -31,17 +32,21 @@ void BatteryMonitor::ProbeFilter()
 		v = FilterVoltage(100);
 		i++;
 		//printf("filtro=%d v=[%.4f]\n", i, v);
-	} while (v < 99.999);
+	} while (v < 63);
 	printf("Battery filter convergence in %d mili seconds\n", i * interval_ms);
 	filterAcc = 0;
 }
 
 
-double BatteryMonitor::ConvertVoltagePercent(double voltage)
+double BatteryMonitor::ConvertVoltagePercent(double voltage, bool isCharging)
 {
-	const double maxVoltage = 16.8;
 	const double minVoltage = 12.0;
+	double maxVoltage = 15.5;
 	double percent;
+
+	if (isCharging) {
+		maxVoltage = 16.8;
+	}
 
 	percent = voltage - minVoltage;
 	percent = 100.0 * percent / (maxVoltage - minVoltage);
@@ -55,8 +60,8 @@ double BatteryMonitor::FilterVoltage(double voltage)
 
 	error = (double)voltage - filterAcc;
 
-	filterAcc += error * (double)interval_ms / 25000.0;
-	
+	filterAcc += error * (double)interval_ms / 1000000.0;
+
 	return filterAcc;
 }
 
@@ -103,20 +108,11 @@ void BatteryMonitor::funcBatteryMonitor()
 			if (rc == PROTOCOL_OK)
 			{
 				voltage = FilterVoltage(v);
-				percent = ConvertVoltagePercent(voltage);
-				printf("Battery: [%.2fV] [%.2fV] [%.2f%%]\n", v, voltage, percent);
+				percent = ConvertVoltagePercent(voltage, false);
+				printf("Battery: [%.2fV] [%.4fV] [%.2f%%]\n", v, voltage, percent);
 
-				if (percent < 1.0) {
-					printf("Battery very low!\n");
-					//Speak("Bateria muito baixa!");
-					sleep(3);
-					//Speak("Desligando");
-					cmd->System("sudo poweroff");
-				}
-				else if (percent < 10.0) {
-					printf("Battery low\n");
-					//Speak("Bateria baixa");
-				}
+				if (EventBattery != NULL)
+					EventBattery(percent);
 			}
 			else
 			{
